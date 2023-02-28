@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 2 Bayesian data analysis | Bayesian Measurement and Verification</title>
+<meta name="author" content="Simon Rouchier">
+<meta name="description" content="This page will be based on the presctiptive part of my contribution to the UAG guide. I will need to elaborate some of it and simplify other parts. starting here Bayesian statistics are mentioned...">
+<meta name="generator" content="bookdown 0.26 with bs4_book()">
+<meta property="og:title" content="Chapter 2 Bayesian data analysis | Bayesian Measurement and Verification">
+<meta property="og:type" content="book">
+<meta property="og:description" content="This page will be based on the presctiptive part of my contribution to the UAG guide. I will need to elaborate some of it and simplify other parts. starting here Bayesian statistics are mentioned...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 2 Bayesian data analysis | Bayesian Measurement and Verification">
+<meta name="twitter:description" content="This page will be based on the presctiptive part of my contribution to the UAG guide. I will need to elaborate some of it and simplify other parts. starting here Bayesian statistics are mentioned...">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">Bayesian Measurement and Verification</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Welcome</a></li>
+<li class="book-part">Background</li>
+<li><a class="" href="back-mv.html"><span class="header-section-number">1</span> Measurement and verification</a></li>
+<li><a class="active" href="back-bayes.html"><span class="header-section-number">2</span> Bayesian data analysis</a></li>
+<li class="book-part">Whole building M&amp;V</li>
+<li><a class="" href="optCbasics.html">IPMVP Option C</a></li>
+<li><a class="" href="optClinreg.html"><span class="header-section-number">3</span> Tutorial 1: linear regression and introduction to Stan</a></li>
+<li><a class="" href="optCchangepoint.html"><span class="header-section-number">4</span> Tutorial 2: change-point model</a></li>
+<li><a class="" href="optCautocorr.html"><span class="header-section-number">5</span> Tutorial 3: autocorrelation</a></li>
+<li class="book-part">Option D</li>
+<li><a class="" href="optDbasics.html">Option D basics</a></li>
+<li><a class="" href="bayesian-calibration.html"><span class="header-section-number">6</span> Bayesian calibration</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/srouchier/bayesmv">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="back-bayes" class="section level1" number="2">
+<h1>
+<span class="header-section-number">2</span> Bayesian data analysis<a class="anchor" aria-label="anchor" href="#back-bayes"><i class="fas fa-link"></i></a>
+</h1>
+<p>This page will be based on the presctiptive part of my contribution to the UAG guide. I will need to elaborate some of it and simplify other parts.</p>
+<p>starting here</p>
+<p>Bayesian statistics are mentioned in the Annex B of the ASHRAE Guideline 14, after it has been observed that standard approaches make it difficult to estimate the savings uncertainty when complex models are required:</p>
+<p><em>“Savings uncertainty can only be determined exactly when energy use is a linear function of some independent variable(s). For more complicated models of energy use, such as changepoint models, and for data with serially autocorrelated errors, approximate formulas must be used. These approximations provide reasonable accuracy when compared with simulated data, but in general it is difficult to determine their accuracy in any given situation. <strong>One alternative method for determining savings uncertainty to any desired degree of accuracy is to use a Bayesian approach.”</strong> </em></p>
+<p>Some references then propose to apply Bayesian analysis to M&amp;V:</p>
+<ul>
+<li>Shonder, J. A., &amp; Im, P. (2012). Bayesian analysis of savings from retrofit projects. ASHRAE Transactions, 118, 367.</li>
+<li>Lira, I. (2016). The GUM revision: the Bayesian view toward the expression of measurement uncertainty. European Journal of Physics, 37(2), 025803.</li>
+<li>Carstens, H., Xia, X., &amp; Yadavalli, S. (2018). Bayesian energy measurement and verification analysis. Energies, 11(2), 380.</li>
+</ul>
+<p>Several advantages and drawbacks are mentioned by (Carstens 2018), including:</p>
+<ol style="list-style-type: decimal">
+<li><strong>Because Bayesian models are probabilistic, uncertainty is automatically and exactly quantified. Confidence intervals can be interpreted in the way most people understand them: degrees of belief about the value of the parameter</strong></li>
+<li>The Bayesian approach is widely used and is rapidly gaining popularity in other scientific fields. (Lira 2016) relates that even the GUM (adopted by many societies of physics, chemistry, electrotechnics, etc.) is being rewritten to be more consistent with this approach. Since M&amp;V reports uncertainty according to the GUM, Bayesian calculations would be useful.</li>
+<li><strong>Bayesian models are more universal and flexible than standard methods. Models are also modular and can be designed to suit the problem. For example, it is no different to create terms for serial correlation, or heteroscedasticity (non-constant variance) than it is to specify an ordinary linear model.</strong></li>
+<li>Bayesian models can account for model-selection uncertainty.</li>
+<li>Bayesian approaches allow real-time or online updating of estimates.</li>
+<li>The Bayesian approach allows for the incorporation of prior information where appropriate.</li>
+<li>When the savings need to be calculated for “normalised conditions”, for example, a ‘typical meteorological year’, rather than the conditions during the post-retrofit monitoring period, it is not possible to quantify uncertainty using current methods. However, Shonder and Im (2012) have shown that it can be naturally and easily quantified using the Bayesian approach.</li>
+</ol>
+<p>The points 1 and 3 above are perhaps the most relevant to a M&amp;V practitioner: we can define any arbitrary model structure to explain the data, and use the exact same set of formulas to obtain the savings uncertainty after the models have been fitted.</p>
+<div id="step-1-setting-up-a-model" class="section level3" number="2.0.1">
+<h3>
+<span class="header-section-number">2.0.1</span> Step 1: setting up a model<a class="anchor" aria-label="anchor" href="#step-1-setting-up-a-model"><i class="fas fa-link"></i></a>
+</h3>
+<p>A Bayesian model is made of two components:</p>
+<ul>
+<li>an observational model <span class="math inline">\(p(y|\theta)\)</span> describes the relationship between the data <span class="math inline">\(y\)</span> and the model parameters <span class="math inline">\(\theta\)</span>
+</li>
+<li>a prior model <span class="math inline">\(p(\theta)\)</span> describes what we may already know about the parameters <span class="math inline">\(\theta\)</span>
+</li>
+</ul>
+<p><strong>For example</strong>, we can define a linear regression model as follows. The model output is an energy use <span class="math inline">\(e\)</span>, which was measured in any number of points during a baseline period. We expect <span class="math inline">\(e\)</span> to follow a normal distribution centered around a linear function of the outdoor temperature <span class="math inline">\(T\)</span> and its squared value <span class="math inline">\(T^2\)</span>:</p>
+<p><span class="math display">\[ e \sim \mathcal{N}(\beta_0 + \beta_1 T + \beta_2 T^2, \sigma)\]</span>
+The approach is however much more flexible than the ordinary linear regression. For instance, we can also assume that the model uncertainty <span class="math inline">\(\sigma\)</span> may depend on the temperature:</p>
+<p><span class="math display">\[ \sigma = \sigma_0 + \sigma_1 T\]</span>
+which accounts to estimating additional parameters to describe an eventual dependency of the prediction residuals with temperature.</p>
+<p>Last, we can specify a <em>prior distribution</em> for some parameters. The following line imposes a search interval for the parameter <span class="math inline">\(\beta_0\)</span> with a uniform distribution</p>
+<p><span class="math display">\[ \beta_0 \sim \mathcal{U}(500, 1500)\]</span>
+In the tutorial below, we will illustrate Bayesian inference with a more complex change-point model with 11 parameters.</p>
+</div>
+<div id="step-2-learning" class="section level3" number="2.0.2">
+<h3>
+<span class="header-section-number">2.0.2</span> Step 2: learning<a class="anchor" aria-label="anchor" href="#step-2-learning"><i class="fas fa-link"></i></a>
+</h3>
+<p>Bayes’ rule formulates the <em>posterior</em> distribution, i.e. the probability distribution of the parameters conditioned on the observed data.</p>
+<p><span class="math display">\[ p(\theta|y) \propto p(y|\theta) p(\theta)\]</span></p>
+<p>In practice, the posterior is not calculated exactly, but approached by a large set of samples <span class="math inline">\(\theta^{(m)}\)</span> produced by a Markov Chain Monte Carlo (MCMC) algorithm. This step is mostly automated and doesn’t require much intervention from the user, except to diagnose and solve eventual convergence problems.</p>
+<p><span class="math display">\[\theta^{(m)} \sim p(\theta|y)\]</span></p>
+</div>
+<div id="step-3-prediction-and-inference" class="section level3" number="2.0.3">
+<h3>
+<span class="header-section-number">2.0.3</span> Step 3: prediction and inference<a class="anchor" aria-label="anchor" href="#step-3-prediction-and-inference"><i class="fas fa-link"></i></a>
+</h3>
+<p>All the quantities we wish to estimate (energy use, savings…) and their uncertainty are directly calculated from the posterior distribution.</p>
+<p>The so-called <em>posterior predictive distribution</em> of new observations <span class="math inline">\(\tilde{y}\)</span> (such as the probability distribution of energy use at each time step of the reporting period), conditioned on the training data set <span class="math inline">\(y\)</span>, can be calculated by calling the observational model on a large enough number of <span class="math inline">\(\theta^{(m)}\)</span> draws:</p>
+<p><span class="math display">\[ p\left(\tilde{y}|y\right) \approx \frac{1}{M} \sum_{m=1}^M p\left(\tilde{y}|\theta^{(m)}\right) \]</span>
+The advantage of this methodology is that steps 2 and 3 will always remain the same, no matter what model structure is chosen at step 1. The practitioner may try different formulations and priors, and essentially re-run the same script to see if the model checks the validation requirements, before automatically obtaining the savings uncertainty.</p>
+</div>
+<div id="stan" class="section level2" number="2.1">
+<h2>
+<span class="header-section-number">2.1</span> Stan<a class="anchor" aria-label="anchor" href="#stan"><i class="fas fa-link"></i></a>
+</h2>
+<p>What tools to use for Bayesian data analysis</p>
+<ul>
+<li>Python, R, Julia or Matlab</li>
+<li>Stan, pymc, pyro or other</li>
+</ul>
+<p>We use Stan, interfaced with R, but the content of the website is adaptable to the other tools.</p>
+
+</div>
+</div>
+
+
+
+  <div class="chapter-nav">
+<div class="prev"><a href="back-mv.html"><span class="header-section-number">1</span> Measurement and verification</a></div>
+<div class="next"><a href="optCbasics.html">IPMVP Option C</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li>
+<a class="nav-link" href="#back-bayes"><span class="header-section-number">2</span> Bayesian data analysis</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#step-1-setting-up-a-model"><span class="header-section-number">2.0.1</span> Step 1: setting up a model</a></li>
+<li><a class="nav-link" href="#step-2-learning"><span class="header-section-number">2.0.2</span> Step 2: learning</a></li>
+<li><a class="nav-link" href="#step-3-prediction-and-inference"><span class="header-section-number">2.0.3</span> Step 3: prediction and inference</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#stan"><span class="header-section-number">2.1</span> Stan</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/srouchier/bayesmv/blob/master/02-backgroundbayes.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/srouchier/bayesmv/edit/master/02-backgroundbayes.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Bayesian Measurement and Verification</strong>" was written by Simon Rouchier. </p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

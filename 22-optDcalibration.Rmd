@@ -1,0 +1,3 @@
+# Bayesian calibration
+
+Some literature and principles of "bayesian calibration", which is how Option D can be done bayesically.

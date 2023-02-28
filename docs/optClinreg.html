@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 3 Tutorial 1: linear regression and introduction to Stan | Bayesian Measurement and Verification</title>
+<meta name="author" content="Simon Rouchier">
+<meta name="description" content="This first tutorial uses the most simple model, ordinary linear regression, to show that the Bayesian method returns the same results (energy use predictions, savings, and their uncertainty) as...">
+<meta name="generator" content="bookdown 0.26 with bs4_book()">
+<meta property="og:title" content="Chapter 3 Tutorial 1: linear regression and introduction to Stan | Bayesian Measurement and Verification">
+<meta property="og:type" content="book">
+<meta property="og:description" content="This first tutorial uses the most simple model, ordinary linear regression, to show that the Bayesian method returns the same results (energy use predictions, savings, and their uncertainty) as...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 3 Tutorial 1: linear regression and introduction to Stan | Bayesian Measurement and Verification">
+<meta name="twitter:description" content="This first tutorial uses the most simple model, ordinary linear regression, to show that the Bayesian method returns the same results (energy use predictions, savings, and their uncertainty) as...">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">Bayesian Measurement and Verification</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Welcome</a></li>
+<li class="book-part">Background</li>
+<li><a class="" href="back-mv.html"><span class="header-section-number">1</span> Measurement and verification</a></li>
+<li><a class="" href="back-bayes.html"><span class="header-section-number">2</span> Bayesian data analysis</a></li>
+<li class="book-part">Whole building M&amp;V</li>
+<li><a class="" href="optCbasics.html">IPMVP Option C</a></li>
+<li><a class="active" href="optClinreg.html"><span class="header-section-number">3</span> Tutorial 1: linear regression and introduction to Stan</a></li>
+<li><a class="" href="optCchangepoint.html"><span class="header-section-number">4</span> Tutorial 2: change-point model</a></li>
+<li><a class="" href="optCautocorr.html"><span class="header-section-number">5</span> Tutorial 3: autocorrelation</a></li>
+<li class="book-part">Option D</li>
+<li><a class="" href="optDbasics.html">Option D basics</a></li>
+<li><a class="" href="bayesian-calibration.html"><span class="header-section-number">6</span> Bayesian calibration</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/srouchier/bayesmv">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="optClinreg" class="section level1" number="3">
+<h1>
+<span class="header-section-number">3</span> Tutorial 1: linear regression and introduction to Stan<a class="anchor" aria-label="anchor" href="#optClinreg"><i class="fas fa-link"></i></a>
+</h1>
+<p>This first tutorial uses the most simple model, ordinary linear regression, to show that the Bayesian method returns the same results (energy use predictions, savings, and their uncertainty) as the analytical method. As a bonus, this is also a tutorial to Stan.</p>
+<ul>
+<li>introduction to Stan</li>
+<li>comparison with the classical analysis</li>
+</ul>
+<p>Imports</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://mc-stan.org/rstan/">rstan</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></code></pre></div>
+<p>The data</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># setwd("...") #Set this to path of "cddhddmod.stan"</span>
+
+<span class="co"># Baseline data: cooling and heating degree days, energy use</span>
+<span class="va">df.pre</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>cdd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span>, <span class="fl">15</span>, <span class="fl">21</span>, <span class="fl">21</span>, <span class="fl">14</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>,
+                     hdd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">14</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">20</span>, <span class="fl">18</span>, <span class="fl">32</span>, <span class="fl">27</span>, <span class="fl">20</span><span class="op">)</span>,
+                     use <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">35936</span>, <span class="fl">22260</span>, <span class="fl">20970</span>, <span class="fl">25438</span>, <span class="fl">28547</span>, <span class="fl">24394</span>,
+                             <span class="fl">24224</span>, <span class="fl">38767</span>, <span class="fl">42205</span>, <span class="fl">49649</span>, <span class="fl">43540</span>, <span class="fl">43734</span><span class="op">)</span><span class="op">)</span>
+<span class="co"># Reporting period data: cooling and heating degree days, energy use</span>
+<span class="va">df.post</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>cdd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">3</span>, <span class="fl">13</span>, <span class="fl">23</span>, <span class="fl">19</span>, <span class="fl">16</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>,
+                      hdd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">19</span>, <span class="fl">20</span>, <span class="fl">24</span>, <span class="fl">25</span>, <span class="fl">14</span><span class="op">)</span>,
+                      use <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">25416</span>, <span class="fl">17445</span>, <span class="fl">13626</span>, <span class="fl">19295</span>, <span class="fl">17970</span>, <span class="fl">15158</span>,
+                              <span class="fl">13293</span>, <span class="fl">35297</span>, <span class="fl">35665</span>, <span class="fl">38562</span>, <span class="fl">33383</span>, <span class="fl">37244</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div id="modelling" class="section level2" number="3.1">
+<h2>
+<span class="header-section-number">3.1</span> Modelling<a class="anchor" aria-label="anchor" href="#modelling"><i class="fas fa-link"></i></a>
+</h2>
+<p>equation</p>
+<p>stan model</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">model</span> <span class="op">&lt;-</span> <span class="st">"
+data {
+// Baseline data
+  int&lt;lower=0&gt; N;     // number of data items
+  int&lt;lower=0&gt; K;     // number of predictors
+  matrix[N, K] x;     // predictor matrix
+  vector[N] y;        // outcome vector
+// Reporting period data
+  int&lt;lower=0&gt; N_post;  // number of data items
+  matrix[N, K] x_post;     // predictor matrix
+  vector[N] y_post;        // outcome vector
+}
+parameters {
+  real alpha;           // intercept
+  vector[K] beta;       // coefficients for predictors
+  real&lt;lower=0&gt; sigma;  // error scale
+ }
+model {
+  y ~ normal(x * beta + alpha, sigma);  // likelihood
+}
+generated quantities {
+  vector[N_post] prediction;
+  real savings = 0;
+  for (n in 1:N_post) {
+    prediction[n] = normal_rng(x_post[n] * beta + alpha, sigma);
+    savings += prediction[n] - y_post[n];
+  }
+}
+"</span></code></pre></div>
+<p>explanation on the blocs:</p>
+<ul>
+<li>data</li>
+<li>parameters</li>
+<li>model y ~ normal(x * beta + alpha, sigma);</li>
+<li>generated quantities</li>
+</ul>
+<p>The last block <code>generated quantities</code> is optional.</p>
+<div id="model-training" class="section level3" number="3.1.1">
+<h3>
+<span class="header-section-number">3.1.1</span> Model training<a class="anchor" aria-label="anchor" href="#model-training"><i class="fas fa-link"></i></a>
+</h3>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">data_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>N <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df.pre</span><span class="op">)</span>,
+                  K <span class="op">=</span> <span class="fl">2</span>,
+                  x <span class="op">=</span> <span class="va">df.pre</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">cdd</span>, <span class="va">hdd</span><span class="op">)</span>,
+                  y <span class="op">=</span> <span class="va">df.pre</span><span class="op">$</span><span class="va">use</span>,
+                  N_post <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df.post</span><span class="op">)</span>,
+                  x_post <span class="op">=</span> <span class="va">df.post</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">cdd</span>, <span class="va">hdd</span><span class="op">)</span>,
+                  y_post <span class="op">=</span> <span class="va">df.post</span><span class="op">$</span><span class="va">use</span><span class="op">)</span>
+
+<span class="va">fit1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/rstan/reference/stan.html">stan</a></span><span class="op">(</span>model_code <span class="op">=</span> <span class="va">model</span>, data <span class="op">=</span> <span class="va">data_list</span>, refresh <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">fit1</span>, pars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"alpha"</span>, <span class="st">"beta"</span>, <span class="st">"sigma"</span>, <span class="st">"savings"</span><span class="op">)</span>, probs<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.025</span>,<span class="fl">.5</span>,<span class="fl">.975</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<pre><code>## Inference for Stan model: 518e88093c164eed938c981d4795b52f.
+## 4 chains, each with iter=2000; warmup=1000; thin=1; 
+## post-warmup draws per chain=1000, total post-warmup draws=4000.
+## 
+##             mean se_mean       sd     2.5%      50%     97.5% n_eff Rhat
+## alpha   22816.62   74.70  2530.15 17813.11 22838.03  27791.20  1147    1
+## beta[1]   117.15    4.87   168.98  -217.76   116.54    446.14  1204    1
+## beta[2]   874.67    3.59   124.37   633.33   872.67   1131.50  1198    1
+## sigma    3096.13   24.75   871.05  1923.38  2943.78   5216.65  1239    1
+## savings 75604.20  277.61 16176.65 44126.99 75402.61 108854.37  3396    1
+## 
+## Samples were drawn using NUTS(diag_e) at Tue Feb 21 11:00:06 2023.
+## For each parameter, n_eff is a crude measure of effective sample size,
+## and Rhat is the potential scale reduction factor on split chains (at 
+## convergence, Rhat=1).</code></pre>
+<p>link to all the options of the stan() method. This works for now but we’ll use more options in a later tutorial
+default : 4 chains, 2000 samples per chain, 1000 warmup. In case of convergence issues, increasing samples and warmup is one of the first things to try.</p>
+</div>
+<div id="convergence-diagnostics" class="section level3" number="3.1.2">
+<h3>
+<span class="header-section-number">3.1.2</span> Convergence diagnostics<a class="anchor" aria-label="anchor" href="#convergence-diagnostics"><i class="fas fa-link"></i></a>
+</h3>
+</div>
+</div>
+<div id="validation" class="section level2" number="3.2">
+<h2>
+<span class="header-section-number">3.2</span> Validation<a class="anchor" aria-label="anchor" href="#validation"><i class="fas fa-link"></i></a>
+</h2>
+<p>Validation steps are the same as in the classical analysis</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">la</span> <span class="op">&lt;-</span> <span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html">extract</a></span><span class="op">(</span><span class="va">fit1</span>, permuted <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="va">residuals</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html">colMeans</a></span><span class="op">(</span><span class="va">la</span><span class="op">$</span><span class="va">prediction</span><span class="op">)</span> <span class="op">-</span> <span class="va">df.pre</span><span class="op">$</span><span class="va">use</span>
+<span class="fu"><a href="https://rdrr.io/r/stats/acf.html">acf</a></span><span class="op">(</span><span class="va">residuals</span><span class="op">)</span></code></pre></div>
+<div class="inline-figure"><img src="bayesmv_files/figure-html/unnamed-chunk-5-1.png" width="672"></div>
+</div>
+<div id="prediction-of-savings" class="section level2" number="3.3">
+<h2>
+<span class="header-section-number">3.3</span> Prediction of savings<a class="anchor" aria-label="anchor" href="#prediction-of-savings"><i class="fas fa-link"></i></a>
+</h2>
+<p>Comparison with classical analysis</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">use</span> <span class="op">~</span> <span class="va">cdd</span> <span class="op">+</span> <span class="va">hdd</span>, <span class="va">df.pre</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">fit2</span><span class="op">)</span></code></pre></div>
+<pre><code>## 
+## Call:
+## lm(formula = use ~ cdd + hdd, data = df.pre)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -3608.1 -1596.3  -225.6  1464.2  3636.7 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  22860.4     2136.0  10.702 2.03e-06 ***
+## cdd            114.5      142.6   0.803    0.443    
+## hdd            872.7      104.2   8.374 1.53e-05 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 2681 on 9 degrees of freedom
+## Multiple R-squared:  0.9421, Adjusted R-squared:  0.9292 
+## F-statistic: 73.24 on 2 and 9 DF,  p-value: 2.702e-06</code></pre>
+<p>point by point</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">predict.1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="va">la</span><span class="op">$</span><span class="va">prediction</span>, <span class="fl">2</span>, <span class="va">quantile</span>, probs<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.025</span>, <span class="fl">0.5</span>, <span class="fl">0.975</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">predict.2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">fit2</span>, newdata <span class="op">=</span> <span class="va">df.post</span>, interval <span class="op">=</span> <span class="st">"prediction"</span>, level<span class="op">=</span><span class="fl">0.95</span><span class="op">)</span>
+
+<span class="va">xplot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html">array</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df.post</span><span class="op">)</span><span class="op">)</span>
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">xplot</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span>mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">df.post</span><span class="op">$</span><span class="va">use</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">predict.1</span><span class="op">[</span><span class="fl">2</span>,<span class="op">]</span><span class="op">)</span>, color<span class="op">=</span><span class="st">'red'</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">predict.2</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span><span class="op">)</span>, color<span class="op">=</span><span class="st">'blue'</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html">geom_ribbon</a></span><span class="op">(</span>mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>ymin<span class="op">=</span><span class="va">predict.1</span><span class="op">[</span><span class="fl">1</span>,<span class="op">]</span>, ymax<span class="op">=</span><span class="va">predict.1</span><span class="op">[</span><span class="fl">3</span>,<span class="op">]</span><span class="op">)</span>, fill<span class="op">=</span><span class="st">'red'</span>, alpha<span class="op">=</span><span class="fl">0.1</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html">geom_ribbon</a></span><span class="op">(</span>mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>ymin<span class="op">=</span><span class="va">predict.2</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span>, ymax<span class="op">=</span><span class="va">predict.2</span><span class="op">[</span>,<span class="fl">3</span><span class="op">]</span><span class="op">)</span>, fill<span class="op">=</span><span class="st">'blue'</span>, alpha<span class="op">=</span><span class="fl">0.1</span><span class="op">)</span></code></pre></div>
+<div class="inline-figure"><img src="bayesmv_files/figure-html/unnamed-chunk-7-1.png" width="672"></div>
+<p>total savings</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">method</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"bayesian"</span>, <span class="st">"classical"</span><span class="op">)</span>
+<span class="co"># Mean savings</span>
+<span class="va">mean.savings</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">la</span><span class="op">$</span><span class="va">savings</span><span class="op">)</span>,
+                  <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">predict.2</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span> <span class="op">-</span> <span class="va">df.post</span><span class="op">$</span><span class="va">use</span><span class="op">)</span><span class="op">)</span>
+<span class="co"># Lower and upper bounds of the 95% confidence interval of savings</span>
+<span class="va">lower.bound</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">predict.1</span><span class="op">[</span><span class="fl">1</span>,<span class="op">]</span> <span class="op">-</span> <span class="va">df.post</span><span class="op">$</span><span class="va">use</span><span class="op">)</span>,
+                 <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">predict.2</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span> <span class="op">-</span> <span class="va">df.post</span><span class="op">$</span><span class="va">use</span><span class="op">)</span><span class="op">)</span>
+<span class="va">upper.bound</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">predict.1</span><span class="op">[</span><span class="fl">3</span>,<span class="op">]</span> <span class="op">-</span> <span class="va">df.post</span><span class="op">$</span><span class="va">use</span><span class="op">)</span>,
+                 <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">predict.2</span><span class="op">[</span>,<span class="fl">3</span><span class="op">]</span> <span class="op">-</span> <span class="va">df.post</span><span class="op">$</span><span class="va">use</span><span class="op">)</span><span class="op">)</span> 
+<span class="va">svgs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">method</span>, <span class="va">mean.savings</span>, <span class="va">lower.bound</span>, <span class="va">upper.bound</span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">svgs</span><span class="op">)</span></code></pre></div>
+<pre><code>##      method mean.savings lower.bound upper.bound
+## 1  bayesian     75604.20  -11293.806    161877.8
+## 2 classical     75564.54   -6385.537    157514.6</code></pre>
+<p>display results in table?</p>
+<p>Conclusion : we get the same results with both approaches. The Bayesian method seems much more complicated than the classical method but we’ll show in the next tutorials that it will remain the same regardless of model complexity, while the classical approach cannot keep up</p>
+
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="optCbasics.html">IPMVP Option C</a></div>
+<div class="next"><a href="optCchangepoint.html"><span class="header-section-number">4</span> Tutorial 2: change-point model</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#optClinreg"><span class="header-section-number">3</span> Tutorial 1: linear regression and introduction to Stan</a></li>
+<li>
+<a class="nav-link" href="#modelling"><span class="header-section-number">3.1</span> Modelling</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#model-training"><span class="header-section-number">3.1.1</span> Model training</a></li>
+<li><a class="nav-link" href="#convergence-diagnostics"><span class="header-section-number">3.1.2</span> Convergence diagnostics</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#validation"><span class="header-section-number">3.2</span> Validation</a></li>
+<li><a class="nav-link" href="#prediction-of-savings"><span class="header-section-number">3.3</span> Prediction of savings</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/srouchier/bayesmv/blob/master/12-optClinreg.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/srouchier/bayesmv/edit/master/12-optClinreg.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Bayesian Measurement and Verification</strong>" was written by Simon Rouchier. </p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

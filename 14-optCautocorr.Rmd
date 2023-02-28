@@ -1,0 +1,244 @@
+# Tutorial 3: autocorrelation {#optCautocorr}
+
+This is a follow-up to tutorial 2 where we explain autocorrelation and how to deal with it.
+
+If a fitted model has autocorrelated residuals, then we have two options :
+
+* If possible, improve the model itself with a better description of the building and its physics;
+* If is it not possible to improve the model any further, because the data are insufficient to learn additional parameters, and autocorrelation remains, then we can somehow "include it" in the model.
+
+The latter accounts to accepting that we reached a ceiling for model refinement, and making reliable predictions will come at the cost of increased uncertainty.
+
+Consider the general model formulation where the observed variable (energy use) $y$ at time $t$ is expected
+
+$$
+y_t = f(T_t, occ_t) + \varepsilon_t
+$$
+
+where $f$ can be any function of observed variables (ambient temperature, occupancy, etc.)
+
+A moving average (MA) model uses previous errors as predictors for future outcomes (see [Stan documentation](https://mc-stan.org/docs/stan-users-guide/moving-average-models.html)). For a MA model of order $Q$, $\mathrm{MA}(Q)$ we add regression coefficients $\theta_q$ for previous error terms.
+
+$$
+y_t = f(T_t, occ_t) + \theta_1 \varepsilon_{t-1} + \dots + \theta_Q \varepsilon_{t-Q} + \varepsilon_t
+$$
+
+
+
+```{r, warning=FALSE, message=FALSE}
+library(rstan)
+library(tidyverse)
+library(lubridate)
+```
+
+
+```{r, warning=FALSE, message=FALSE}
+# Baseline data: one year
+df.pre <- read_csv("data/Long-term 11 commercial buildings/building60preoffice.csv") %>% 
+  mutate(DateTime = mdy_hm(Date),
+         Date = as_date(DateTime))
+
+# Post-retrofit data: one year
+df.post <- read_csv("data/Long-term 11 commercial buildings/building61duringoffice.csv") %>% 
+  mutate(DateTime = mdy_hm(Date),
+         Date = as_date(DateTime))
+
+# Plot the original data
+head(df.pre)
+ggplot(data = df.pre) + geom_line(mapping = aes(x=DateTime, y=`Building 6 kW`))
+```
+
+
+
+```{r}
+daily.average <- function(df) {
+  df %>% 
+    group_by(Date) %>% 
+    summarise(OAT = mean(OAT),
+              E = sum(`Building 6 kW`),
+              .groups = 'drop'
+    ) %>% 
+    mutate(wday = wday(Date),
+           week.end = wday==1 | wday==7,
+           T = (OAT-32) * 5/9)
+}
+
+df.pre.daily <- daily.average(df.pre)
+df.post.daily <- daily.average(df.post)
+
+ggplot(data = df.pre.daily) +
+  geom_point(mapping = aes(x=T, y=E, color=week.end))
+```
+
+
+
+```{r}
+df.pre.daily <- daily.average(df.pre) %>% filter(!week.end)
+df.post.daily <- daily.average(df.post) %>% filter(!week.end)
+```
+
+see Stan doc on moving average models: https://mc-stan.org/docs/stan-users-guide/moving-average-models.html
+
+
+```{r}
+changepoint <- "
+data {
+  // This block declares all data which will be passed to the Stan model.
+  // Baseline period
+  int<lower=0> N_pre;        // number of data items
+  vector[N_pre] t_pre;      // ambient temperature
+  vector[N_pre] y_pre;      // outcome energy vector
+  // Reporting period
+  int<lower=0> N_post;        // number of data items
+  vector[N_post] t_post;      // ambient temperature
+  vector[N_post] y_post;      // outcome energy vector
+}
+parameters {
+  // This block declares the parameters of the model.
+  real alpha;      // baseline consumption
+  real beta_h;     // slope for heating
+  real tau_h;      // threshold temperature for heating
+  real beta_c;     // slope for cooling
+  real tau_c;      // threshold temperature for cooling
+  real<lower=0> sigma;  // error scale
+  real theta;     // moving average
+}
+transformed parameters {
+  vector[N_pre] f_pre;
+  vector[N_pre] epsilon;
+  vector[N_post] f_post;
+  for (n in 1:N_pre) {
+    f_pre[n] = alpha + beta_h * fmax(tau_h-t_pre[n], 0) + beta_c * fmax(t_pre[n]-tau_c, 0);
+  }
+  epsilon[1] = y_pre[1] - f_pre[1];
+  for (n in 2:N_pre) {
+    epsilon[n] = y_pre[n] - f_pre[n] - theta*epsilon[n-1];
+  }
+  for (n in 1:N_post) {
+    f_post[n] = alpha + beta_h * fmax(tau_h-t_post[n], 0) + beta_c * fmax(t_post[n]-tau_c, 0);
+  }
+}
+model {
+  // Assigning prior distributions on some parameters
+  alpha ~ normal(800, 100);
+  tau_h ~ normal(8, 2);
+  tau_c ~ normal(14, 2);
+  beta_h ~ normal(30, 5);
+  beta_c ~ normal(30, 5);
+  theta ~ normal(0.7, 0.2);
+  sigma ~ normal(80, 10);
+  // Observational model
+  for (n in 2:N_pre) {
+    y_pre[n] ~ normal(f_pre[n] + theta*epsilon[n-1], sigma);
+  }
+}
+generated quantities {
+  // This block is for posterior predictions. It is not part of model training
+  vector[N_pre] y_pre_pred;
+  vector[N_post] y_post_pred;
+  real savings = 0;
+  
+  y_pre_pred[1] = normal_rng(f_pre[1], sigma);
+  for (n in 2:N_pre) {
+    y_pre_pred[n] = normal_rng(f_pre[n] + theta*epsilon[n-1], sigma);
+  }
+  
+  // Forecasts with increased uncertainty due to the autocorrelation
+  y_post_pred[1] = normal_rng(f_post[1], sigma);
+  for (n in 2:N_post) {
+    y_post_pred[n] = normal_rng(f_post[n], sigma * sqrt(1+theta^2));
+    savings += y_post_pred[n] - y_post[n];
+  }
+}
+"
+```
+
+
+ 
+```{r}
+model_data <- list(
+  N_pre = nrow(df.pre.daily),
+  t_pre = df.pre.daily$T,
+  y_pre = df.pre.daily$E,
+  N_post = nrow(df.post.daily),
+  t_post = df.post.daily$T,
+  y_post = df.post.daily$E
+)
+```
+
+
+This model has a much harder time converging. I could only obtain good mixing with very high warmup
+
+```{r, cache=TRUE}
+# Fitting the model
+fit1 <- stan(
+  model_code = changepoint,  # Stan program
+  data = model_data,        # named list of data
+  chains = 4,               # number of Markov chains
+  warmup = 4000,            # number of warmup iterations per chain
+  iter = 6000,              # total number of iterations per chain
+  cores = 2,                # number of cores (could use one per chain)
+  refresh = 1,              # progress not shown
+)
+```
+
+
+
+```{r}
+print(fit1, pars = c("alpha", "beta_h", "tau_h", "beta_c", "tau_c", "sigma", "theta", "savings"))
+traceplot(fit1, pars = c("alpha", "beta_h", "tau_h", "beta_c", "tau_c", "sigma", "lp__"))
+pairs(fit1, pars = c("alpha", "beta_h", "tau_h", "beta_c", "tau_c", "sigma", "theta"))
+```
+
+
+
+
+```{r}
+# Extracting full predictive distributions from the stanfit object
+la <- rstan::extract(fit1, permuted = TRUE)
+y_pre_pred <- la$y_pre_pred
+
+# Quantiles
+y_pre_quan <- apply(y_pre_pred, 2, quantile, probs=c(0.025, 0.5, 0.975))
+
+# Adding prediction quantiles to the baseline dataframe
+df.pre.daily <- df.pre.daily %>% mutate(pred_low = y_pre_quan[1, ],
+                                          pred_med = y_pre_quan[2, ],
+                                          pred_up = y_pre_quan[3, ])
+
+# Plot
+ggplot(data = df.pre.daily) +
+  geom_point(mapping = aes(x=T, y=E)) +
+  geom_line(mapping = aes(x=T, y=pred_med), color='red') +
+  geom_ribbon(mapping = aes(x=T, ymin=pred_low, ymax=pred_up), fill='red', alpha=0.1)
+```
+
+
+
+```{r}
+ggplot(data = df.pre.daily) +
+  geom_line(mapping = aes(x=Date, y=pred_med-E)) +
+  geom_ribbon(mapping = aes(x=Date, ymin=pred_low-E, ymax=pred_up-E), alpha=0.2)
+
+```
+
+```{r}
+residuals <- colMeans(la$y_pre_pred) - df.pre.daily$E
+
+ggplot() +
+  geom_point(mapping = aes(x=residuals, y=lag(residuals, n=1, default=0)))
+
+ggplot() +
+  geom_point(mapping = aes(x=residuals, y=lag(residuals, n=2, default=0)))
+
+acf(residuals)
+```
+
+ARIMA prediction intervals : see https://otexts.com/fpp2/arima-forecasting.html
+
+
+$$
+\hat{\sigma}_h=\hat{\sigma}^2 \left[1+\sum_{i=1}^{h-1}\hat{\theta}_i^2\right]
+$$
+
+

@@ -1,0 +1,15 @@
+# (PART) Background {#background .unnumbered}
+
+# Measurement and verification {#back-mv}
+
+## Intro to M&V
+
+Minimal background on the basics of M&V. Just the essentials so the website is self-sufficient. For further reading, link to the other resources.
+
+## IPMVP
+
+Main concepts of the IPMVP: the 4 options and the workflows. Again, keeping it short.
+
+## Statistical concepts {#back-stats}
+
+Quick list of statistical concepts: uncertainty, bias, correlation, etc.

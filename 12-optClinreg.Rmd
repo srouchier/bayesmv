@@ -1,0 +1,157 @@
+# Tutorial 1: linear regression and introduction to Stan {#optClinreg}
+
+This first tutorial uses the most simple model, ordinary linear regression, to show that the Bayesian method returns the same results (energy use predictions, savings, and their uncertainty) as the analytical method. As a bonus, this is also a tutorial to Stan.
+
+* introduction to Stan
+* comparison with the classical analysis
+
+Imports
+
+```{r, warning=FALSE, message=FALSE}
+library(rstan)
+library(tidyverse)
+```
+The data
+
+```{r}
+# setwd("...") #Set this to path of "cddhddmod.stan"
+
+# Baseline data: cooling and heating degree days, energy use
+df.pre <- data.frame(cdd = c(0, 10, 15, 21, 21, 14, 0, 0, 0, 0, 0, 0),
+                     hdd = c(14, 0, 0, 0, 0, 0, 2, 20, 18, 32, 27, 20),
+                     use = c(35936, 22260, 20970, 25438, 28547, 24394,
+                             24224, 38767, 42205, 49649, 43540, 43734))
+# Reporting period data: cooling and heating degree days, energy use
+df.post <- data.frame(cdd = c(0, 3, 13, 23, 19, 16, 0, 0, 0, 0, 0, 0),
+                      hdd = c(5, 0, 0, 0, 0, 0, 2, 19, 20, 24, 25, 14),
+                      use = c(25416, 17445, 13626, 19295, 17970, 15158,
+                              13293, 35297, 35665, 38562, 33383, 37244))
+```
+
+## Modelling
+
+equation
+
+stan model
+
+```{r}
+model <- "
+data {
+// Baseline data
+  int<lower=0> N;     // number of data items
+  int<lower=0> K;     // number of predictors
+  matrix[N, K] x;     // predictor matrix
+  vector[N] y;        // outcome vector
+// Reporting period data
+  int<lower=0> N_post;  // number of data items
+  matrix[N, K] x_post;     // predictor matrix
+  vector[N] y_post;        // outcome vector
+}
+parameters {
+  real alpha;           // intercept
+  vector[K] beta;       // coefficients for predictors
+  real<lower=0> sigma;  // error scale
+ }
+model {
+  y ~ normal(x * beta + alpha, sigma);  // likelihood
+}
+generated quantities {
+  vector[N_post] prediction;
+  real savings = 0;
+  for (n in 1:N_post) {
+    prediction[n] = normal_rng(x_post[n] * beta + alpha, sigma);
+    savings += prediction[n] - y_post[n];
+  }
+}
+"
+```
+
+explanation on the blocs:
+
+* data
+* parameters
+* model y ~ normal(x * beta + alpha, sigma);
+* generated quantities
+
+The last block `generated quantities` is optional.
+
+### Model training
+
+```{r, cache=TRUE}
+data_list <- list(N = nrow(df.pre),
+                  K = 2,
+                  x = df.pre %>% select(cdd, hdd),
+                  y = df.pre$use,
+                  N_post = nrow(df.post),
+                  x_post = df.post %>% select(cdd, hdd),
+                  y_post = df.post$use)
+
+fit1 <- stan(model_code = model, data = data_list, refresh = 0)
+
+print(fit1, pars=c("alpha", "beta", "sigma", "savings"), probs=c(.025,.5,.975))
+```
+
+link to all the options of the stan() method. This works for now but we'll use more options in a later tutorial
+default : 4 chains, 2000 samples per chain, 1000 warmup. In case of convergence issues, increasing samples and warmup is one of the first things to try.
+
+### Convergence diagnostics
+
+
+
+## Validation
+
+Validation steps are the same as in the classical analysis
+
+```{r}
+la <- rstan::extract(fit1, permuted = TRUE)
+residuals <- colMeans(la$prediction) - df.pre$use
+acf(residuals)
+```
+
+
+## Prediction of savings
+
+Comparison with classical analysis
+
+```{r}
+fit2 <- lm(use ~ cdd + hdd, df.pre)
+summary(fit2)
+```
+
+point by point
+
+```{r}
+
+predict.1 <- apply(la$prediction, 2, quantile, probs=c(0.025, 0.5, 0.975))
+
+predict.2 <- predict(fit2, newdata = df.post, interval = "prediction", level=0.95)
+
+xplot <- array(1:nrow(df.post))
+ggplot(mapping = aes(x = xplot)) +
+  geom_point(mapping = aes(y = df.post$use)) +
+  geom_line(mapping = aes(y = predict.1[2,]), color='red') +
+  geom_line(mapping = aes(y = predict.2[,1]), color='blue') +
+  geom_ribbon(mapping = aes(ymin=predict.1[1,], ymax=predict.1[3,]), fill='red', alpha=0.1) +
+  geom_ribbon(mapping = aes(ymin=predict.2[,2], ymax=predict.2[,3]), fill='blue', alpha=0.1)
+```
+
+total savings 
+
+```{r}
+method <- c("bayesian", "classical")
+# Mean savings
+mean.savings <- c(mean(la$savings),
+                  sum(predict.2[,1] - df.post$use))
+# Lower and upper bounds of the 95% confidence interval of savings
+lower.bound <- c(sum(predict.1[1,] - df.post$use),
+                 sum(predict.2[,2] - df.post$use))
+upper.bound <- c(sum(predict.1[3,] - df.post$use),
+                 sum(predict.2[,3] - df.post$use)) 
+svgs <- data.frame(method, mean.savings, lower.bound, upper.bound)
+
+print(svgs)
+```
+
+display results in table?
+
+Conclusion : we get the same results with both approaches. The Bayesian method seems much more complicated than the classical method but we'll show in the next tutorials that it will remain the same regardless of model complexity, while the classical approach cannot keep up 

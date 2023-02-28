@@ -1,0 +1,49 @@
+--- 
+title: "Bayesian Measurement and Verification"
+author: "Simon Rouchier"
+
+site: bookdown::bookdown_site
+bibliography: book.bib
+biblio-style: apalike
+link-citations: yes
+github-repo: srouchier/bayesmv
+description: "This is a series and tutorials and courses to apply Bayesian statistics to measurement and verification"
+---
+
+# Welcome {-}
+
+This website promotes the use of Bayesian data analysis for building energy use monitoring, especially in the context of 
+Measurement and Verification (M&V) methods.
+
+**This is a work in progress.**
+
+The target audience of the book are energy experts who may only have a moderate background on statistics and applied mathematics. One of our main arguments for promoting Bayesian data analysis is that it is both universally applicable, and accessible. Our aim is to give all building energy practicioners the tools to accurately assess savings following energy conservation measures, along with their uncertainty.
+
+The first part of the website introduces the reader to the main concepts of building energy monitoring, measurement and verification, and Bayesian data analysis. The amount of theoretical background is voluntarily kept short in order to keep the focus on practical examples. References are included for readers who wish to learn more.
+
+The second part are tutorials on whole-building energy monitoring and M&V, referred to as "Option C" in the IPMVP documentation.
+
+* [A first tutorial](#optClinreg) serves as an introduction to the Stan platform, and shows that Bayesian analysis obtains the same uncertainty assessments as classical methods, when analytical solutions are available.
+* Once the reader is reassured on the accuracy of our method, [a second tutorial](#optCchangepoint) shows how effortlessly it extends to more complex model structures, where analytical solutions may no longer evaluate uncertainty analytically.
+* [A third tutorial](#optCautocorrA) about autocorrelation?
+
+Then there is Option D
+
+## The content and how to use it {.unnumbered}
+
+Most content is displayed from R notebooks which allow displaying the full code for the calculations, their results and explanations. In order to apply the methods to your own use cases, you should first:
+
+* [Install R](https://cran.rstudio.com/) and [Rstudio](https://posit.co/)
+* [Install Stan](https://mc-stan.org/). You can learn Stan basics here but here is a link to the full Stan documentation.
+
+Additionally, if you wish to replicate the results shown in these tutorials, you may either download the full book from its repository and run the R markdown files matching the chapters; or only download the data sets and copy/paste the code in your own R files.
+
+We use R as the main programming language for all analyses, but all content is also adaptable to other environments the reader may be more familiar with: Python, Julia or Matlab.
+
+## About {.unnumbered}
+
+Who contributed to the website. How it was made.
+
+## License {.unnumbered}
+
+A good license.

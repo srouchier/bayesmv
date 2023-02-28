@@ -1,0 +1,76 @@
+# Bayesian data analysis {#back-bayes}
+
+This page will be based on the presctiptive part of my contribution to the UAG guide. I will need to elaborate some of it and simplify other parts.
+
+starting here
+
+Bayesian statistics are mentioned in the Annex B of the ASHRAE Guideline 14, after it has been observed that standard approaches make it difficult to estimate the savings uncertainty when complex models are required:
+
+*"Savings uncertainty can only be determined exactly when energy use is a linear function of some independent variable(s). For more complicated models of energy use, such as changepoint models, and for data with serially autocorrelated errors, approximate formulas must be used. These approximations provide reasonable accuracy when compared with simulated data, but in general it is difficult to determine their accuracy in any given situation. **One alternative method for determining savings uncertainty to any desired degree of accuracy is to use a Bayesian approach."** *
+
+Some references then propose to apply Bayesian analysis to M&V:
+
+* Shonder, J. A., & Im, P. (2012). Bayesian analysis of savings from retrofit projects. ASHRAE Transactions, 118, 367.
+* Lira, I. (2016). The GUM revision: the Bayesian view toward the expression of measurement uncertainty. European Journal of Physics, 37(2), 025803.
+* Carstens, H., Xia, X., & Yadavalli, S. (2018). Bayesian energy measurement and verification analysis. Energies, 11(2), 380.
+
+Several advantages and drawbacks are mentioned by (Carstens 2018), including:
+
+1. **Because Bayesian models are probabilistic, uncertainty is automatically and exactly quantified. Confidence intervals can be interpreted in the way most people understand them: degrees of belief about the value of the parameter**
+2. The Bayesian approach is widely used and is rapidly gaining popularity in other scientific fields. (Lira 2016) relates that even the GUM (adopted by many societies of physics, chemistry, electrotechnics, etc.) is being rewritten to be more consistent with this approach. Since M&V reports uncertainty according to the GUM, Bayesian calculations would be useful.
+3. **Bayesian models are more universal and flexible than standard methods. Models are also modular and can be designed to suit the problem. For example, it is no different to create terms for serial correlation, or heteroscedasticity (non-constant variance) than it is to specify an ordinary linear model.**
+4. Bayesian models can account for model-selection uncertainty.
+5. Bayesian approaches allow real-time or online updating of estimates.
+6. The Bayesian approach allows for the incorporation of prior information where appropriate.
+7. When the savings need to be calculated for “normalised conditions”, for example, a ‘typical meteorological year’, rather than the conditions during the post-retrofit monitoring period, it is not possible to quantify uncertainty using current methods. However, Shonder and Im (2012) have shown that it can be naturally and easily quantified using the Bayesian approach.
+
+The points 1 and 3 above are perhaps the most relevant to a M&V practitioner: we can define any arbitrary model structure to explain the data, and use the exact same set of formulas to obtain the savings uncertainty after the models have been fitted.
+
+### Step 1: setting up a model
+
+A Bayesian model is made of two components:
+
+* an observational model $p(y|\theta)$ describes the relationship between the data $y$ and the model parameters $\theta$
+* a prior model $p(\theta)$ describes what we may already know about the parameters $\theta$
+
+**For example**, we can define a linear regression model as follows. The model output is an energy use $e$, which was measured in any number of points during a baseline period. We expect $e$ to follow a normal distribution centered around a linear function of the outdoor temperature $T$ and its squared value $T^2$:
+
+$$ e \sim \mathcal{N}(\beta_0 + \beta_1 T + \beta_2 T^2, \sigma)$$
+The approach is however much more flexible than the ordinary linear regression. For instance, we can also assume that the model uncertainty $\sigma$ may depend on the temperature:
+
+$$ \sigma = \sigma_0 + \sigma_1 T$$
+which accounts to estimating additional parameters to describe an eventual dependency of the prediction residuals with temperature.
+
+Last, we can specify a *prior distribution* for some parameters. The following line imposes a search interval for the parameter $\beta_0$ with a uniform distribution
+
+$$ \beta_0 \sim \mathcal{U}(500, 1500)$$
+In the tutorial below, we will illustrate Bayesian inference with a more complex change-point model with 11 parameters.
+
+### Step 2: learning
+
+Bayes' rule formulates the *posterior* distribution, i.e. the probability distribution of the parameters conditioned on the observed data.
+
+$$ p(\theta|y) \propto p(y|\theta) p(\theta)$$
+
+In practice, the posterior is not calculated exactly, but approached by a large set of samples $\theta^{(m)}$ produced by a Markov Chain Monte Carlo (MCMC) algorithm. This step is mostly automated and doesn't require much intervention from the user, except to diagnose and solve eventual convergence problems. 
+
+$$\theta^{(m)} \sim p(\theta|y)$$
+
+### Step 3: prediction and inference
+
+All the quantities we wish to estimate (energy use, savings...) and their uncertainty are directly calculated from the posterior distribution.
+
+The so-called *posterior predictive distribution* of new observations $\tilde{y}$ (such as the probability distribution of energy use at each time step of the reporting period), conditioned on the training data set $y$, can be calculated by calling the observational model on a large enough number of $\theta^{(m)}$ draws:
+
+$$ p\left(\tilde{y}|y\right) \approx \frac{1}{M} \sum_{m=1}^M p\left(\tilde{y}|\theta^{(m)}\right) $$
+The advantage of this methodology is that steps 2 and 3 will always remain the same, no matter what model structure is chosen at step 1. The practitioner may try different formulations and priors, and essentially re-run the same script to see if the model checks the validation requirements, before automatically obtaining the savings uncertainty.
+
+## Stan
+
+What tools to use for Bayesian data analysis
+
+* Python, R, Julia or Matlab
+* Stan, pymc, pyro or other
+
+We use Stan, interfaced with R, but the content of the website is adaptable to the other tools.
+

@@ -1,0 +1,316 @@
+# Tutorial 2: change-point model {#optCchangepoint}
+
+This is based on the option C example I already wrote. I need to simplify some parts of it, and elaborate other parts.
+
+```{r, warning=FALSE, message=FALSE}
+library(rstan)
+library(tidyverse)
+library(lubridate)
+```
+
+The data used in this example is the hourly energy consumption and outdoor air temperature data for 11 commercial buildings (office/retail), publicly available here:
+
+https://openei.org/datasets/dataset/consumption-outdoor-air-temperature-11-commercial-buildings
+
+We will be using two data files, respectively labeled *Building 6 (Office "Pre")*, and *Building 6 (Office "Post")*.
+
+## The data
+
+### Loading and displaying
+
+The following block loads two separate data files:
+
+* `building60preoffice.csv` is the baseline period file, saved into the df.base variable
+* `building60postoffice.csv` is the reporting period file, saved into the df.repo variable
+
+The `Date` column of both files is converted into a DateTime type into a new column. Then, the baseline dataset is displayed for a first exploratory look at the data.
+
+```{r, warning=FALSE, message=FALSE}
+# Baseline data: one year
+df.base <- read_csv("data/Long-term 11 commercial buildings/building60preoffice.csv") %>% 
+  mutate(DateTime = mdy_hm(Date),
+         Date = as_date(DateTime))
+
+# Post-retrofit data: one year
+df.repo <- read_csv("data/Long-term 11 commercial buildings/building61duringoffice.csv") %>% 
+  mutate(DateTime = mdy_hm(Date),
+         Date = as_date(DateTime))
+
+# Plot the original data
+head(df.base)
+ggplot(data = df.base) + geom_line(mapping = aes(x=DateTime, y=`Building 6 kW`))
+```
+A few interesting observations:
+
+* The data has a hourly time step size. Every hour, the outdoor air temperature (OAT in °F) and energy use (kW) are available.
+* The energy use is higher in summer and in winter than in-between. This suggests that this consumption data includes both heating and cooling appliances.
+* Week-ends are clearly visible with a lower consumption than in the working days of the week.
+
+
+### Subset selection
+
+Averaging the data over daily time steps should allow to overlook the dependence between consecutive measurements. In turn, this allows using a model which will be much simpler than time series models, but will only be capable of low frequency predictions.
+
+The following block creates new datasets from the original ones:
+
+* Measurements are daily averaged
+* Temperatures are switched to °C for international suitability.
+* A categorical variable is added to indicate week ends.
+
+Then, we plot the daily energy use $E$ (kWh) versus the outdoor temperature $T$ (°C) for both values of the `week.end` categorical variable.
+
+```{r}
+daily.average <- function(df) {
+  df %>% 
+    group_by(Date) %>% 
+    summarise(OAT = mean(OAT),
+              E = sum(`Building 6 kW`),
+              .groups = 'drop'
+    ) %>% 
+    mutate(wday = wday(Date),
+           week.end = wday==1 | wday==7,
+           T = (OAT-32) * 5/9)
+}
+
+df.base.daily <- daily.average(df.base)
+df.repo.daily <- daily.average(df.repo)
+
+ggplot(data = df.base.daily) +
+  geom_point(mapping = aes(x=T, y=E, color=week.end))
+```
+
+It seems fitting to train separate models for the working days and the week ends, because the energy use is clearly different between the two sets. In this tutorial, we will only consider working days, as there aren't many available data points for the week ends, but it is possible to do both.
+
+```{r}
+df.base.daily <- daily.average(df.base) %>% filter(!week.end)
+df.repo.daily <- daily.average(df.repo) %>% filter(!week.end)
+```
+
+
+## Modelling and training
+
+### Model definition
+
+After looking at the data, we can suggest using a change-point model which will include the effects of heating and cooling, and separate week ends from working days. The expected daily energy use $E$ (in kWh per day) is a function of the outdoor temperature $T$ and of a number of parameters:
+
+$$p(E|T) \sim \mathcal{N}\left[\alpha + \beta_{h}(\tau_{h}-T)^+ + \beta_{c}(T-\tau_{c})^+, \sigma\right]$$
+
+Where the $h$ and $c$ subscripts indicate heating and cooling modes. The $+$ superscript indicates that a term is only applied if above zero.
+
+The equation above mean that we expect the energy use $E$ to be a normal distribution centered around a change-point model, with a constant standard deviation $\sigma$. Some particularities of Bayesian statistics are: this normal distribution can be replaced by any other probability distribution; the error term $\sigma$ can be formulated as a function of some inputs; etc.
+
+**This model has 6 possible parameters**, and is not an ordinary linear regression. The following method would also be exactly the same if we decided to complexify the model, for instance by assuming non-linear profiles on each side of the change points, or if we had more categorical variables.
+
+### Model specification with Stan
+
+In this example, we use the Stan probabilistic programming language, which allows full Bayesian statistical inference.
+
+https://mc-stan.org/
+
+A STAN model is a block of text which can either be written in a separate file, or in the same script as the current code. Specifying a model in STAN takes a certain learning curve, but it unlocks the full flexibility of Bayesian analysis.
+
+```{r}
+changepoint <- "
+data {
+  // This block declares all data which will be passed to the Stan model.
+  // Baseline period
+  int<lower=0> N_base;        // number of data items
+  vector[N_base] t_base;      // ambient temperature
+  vector[N_base] y_base;      // outcome energy vector
+  // Reporting period
+  int<lower=0> N_repo;        // number of data items
+  vector[N_repo] t_repo;      // ambient temperature
+  vector[N_repo] y_repo;      // outcome energy vector
+}
+parameters {
+  // This block declares the parameters of the model.
+  real alpha;      // baseline consumption
+  real beta_h;     // slope for heating
+  real tau_h;      // threshold temperature for heating
+  real beta_c;     // slope for cooling
+  real tau_c;      // threshold temperature for cooling
+  real<lower=0> sigma;  // error scale
+}
+model {
+  // Assigning prior distributions on some parameters
+  alpha ~ normal(800, 100);
+  tau_h ~ normal(8, 5);
+  tau_c ~ normal(18, 5);
+  beta_h ~ normal(40, 15);
+  beta_c ~ normal(40, 15);
+  // Observational model
+  for (n in 1:N_base) {
+    y_base[n] ~ normal(alpha + beta_h * fmax(tau_h-t_base[n], 0) + beta_c * fmax(t_base[n]-tau_c, 0), sigma);
+  }
+}
+generated quantities {
+  // This block is for posterior predictions. It is not part of model training
+  vector[N_base] y_base_pred;
+  vector[N_repo] y_repo_pred;
+  real savings = 0;
+  
+  for (n in 1:N_base) {
+    y_base_pred[n] = normal_rng(alpha + beta_h * fmax(tau_h-t_base[n], 0) + beta_c * fmax(t_base[n]-tau_c, 0), sigma);
+  }
+  
+  for (n in 1:N_repo) {
+    y_repo_pred[n] = normal_rng(alpha + beta_h * fmax(tau_h-t_repo[n], 0) + beta_c * fmax(t_repo[n]-tau_c, 0), sigma);
+    savings += y_repo_pred[n] - y_repo[n];
+  }
+}
+"
+```
+
+
+
+Then, a list called `model_data` is created, which maps each part of the data to its appropriate variable into the STAN model.
+ 
+```{r}
+model_data <- list(
+  N_base = nrow(df.base.daily),
+  t_base = df.base.daily$T,
+  y_base = df.base.daily$E,
+  N_repo = nrow(df.repo.daily),
+  t_repo = df.repo.daily$T,
+  y_repo = df.repo.daily$E
+)
+```
+ 
+
+### Step 2: Model fitting
+
+Now that the model has been specified and the data has been mapped to its variables, the syntax for model fitting is below.
+
+One disadvantage of Bayesian inference is that the MCMC algorithm takes much longer to converge than a typical least-squares model fitting method. Running the code below might take a minute because we are only using 365 data points, but the Bayesian approach might become problematic for larger data files (100,000 rows or more).
+
+```{r, cache=TRUE}
+# Fitting the model
+fit1 <- stan(
+  model_code = changepoint,  # Stan program
+  data = model_data,        # named list of data
+  chains = 4,               # number of Markov chains
+  warmup = 1000,            # number of warmup iterations per chain
+  iter = 2000,              # total number of iterations per chain
+  cores = 2,                # number of cores (could use one per chain)
+  refresh = 0,              # progress not shown
+)
+```
+Fitting may result in a number of warnings, telling us that some problems may have occurred: divergent transitions, large R-hat values, low Effective Sample Size... Obtaining a fit without these warnings takes some practice but is essential for an unbiased interpretation of the inferred variables and predictions. A guide to Stan's warnings and how to address them is available here: https://mc-stan.org/misc/warnings.html
+
+The first step into solving these warnings is to re-run the algorithm with different controls: `iter`, `max_treedepth`, etc. If problems persist, it is possible that the model is too complex for the information that the data is able to provide and should be simplified, or that stronger priors should be proposed. A lot of problems can be solved with some prior information. In our specific case, this is especially useful for the variables in the equation for the week-ends, since there are not a lot of data points.
+
+## Validation and results
+
+Stan returns an object (called `fit1` above) from which the distributions of outputs and parameters of the fitted model can be accessed
+
+https://cran.r-project.org/web/packages/rstan/vignettes/stanfit-objects.html
+
+The MCMC algorithm produces a chain of samples $\theta^{(m)}$ for the parameters, which approximate their posterior distributions. In this case, each parameter of the model is represented by a chain of 6,000 draws: from these draws, we can extract any statistics we need: mean, median, quantiles, $t$-score and $p$-values, etc.
+
+### Parameters
+
+As a first validation step, it is useful to take a look at the values of the parameters that have been estimated by the algorithm. Below, we use three diagnostics tools:
+
+* The `print` method shows the table of parameters, much like we could display after an ordinary linear regression
+* `traceplot` shows the traces of the selected parameters. If the fitting has converged, the traces approximate the posterior distributions
+* `pairs` shows the pairwise relationships between parameters. Strong interactions between some parameters are an indication that the model should be re-parameterised.
+
+```{r}
+print(fit1, pars = c("alpha", "beta_h", "tau_h", "beta_c", "tau_c", "sigma", "savings"))
+traceplot(fit1, pars = c("alpha", "beta_h", "tau_h", "beta_c", "tau_c", "sigma", "lp__"))
+pairs(fit1, pars = c("alpha", "beta_h", "tau_h", "beta_c", "tau_c", "sigma", "savings"))
+```
+
+### Predictions
+
+https://mc-stan.org/docs/2_26/stan-users-guide/posterior-prediction-chapter.html
+
+Our main goal here is to compare the energy use measured during the reporting period $y_\mathit{repo}$ with the predictions of the fitted model. Since it is a probabilistic model, its outcome is actually a probability distribution $p\left(y_\mathit{repo}|x_\mathit{repo}, x_\mathit{base}, y_\mathit{base}\right)$, based on the observed values of the model inputs $x$ during the baseline and reporting periods, and on the observed energy use during the baseline period $y_\mathit{base}$.
+
+This so-called **posterior predictive distribution $p\left(y_\mathit{repo}|...\right)$** is already directly available, because a value of $y_\mathit{repo}$ (for each time step) was directly calculated by the Stan model for each value $\theta^{(m)}$.
+
+$$ p\left(y_\mathit{repo}|...\right) \approx \frac{1}{M} \sum_{m=1}^M p\left(y_\mathit{repo}|x_\mathit{repo},\theta^{(m)}\right) $$
+First, let us look at the posterior predictive distribution during the baseline period, in order to validate the model compared to its training data:
+
+```{r}
+# Extracting full predictive distributions from the stanfit object
+la <- rstan::extract(fit1, permuted = TRUE)
+y_base_pred <- la$y_base_pred
+
+# Quantiles
+y_base_quan <- apply(y_base_pred, 2, quantile, probs=c(0.025, 0.5, 0.975))
+
+# Adding prediction quantiles to the baseline dataframe
+df.base.daily <- df.base.daily %>% mutate(pred_low = y_base_quan[1, ],
+                                          pred_med = y_base_quan[2, ],
+                                          pred_up = y_base_quan[3, ])
+
+# Plot
+ggplot(data = df.base.daily) +
+  geom_point(mapping = aes(x=T, y=E)) +
+  geom_line(mapping = aes(x=T, y=pred_med), color='red') +
+  geom_ribbon(mapping = aes(x=T, ymin=pred_low, ymax=pred_up), fill='red', alpha=0.1)
+```
+The colored bands show a 95% prediction interval for the working days and the week ends, respectively. The points are the measurements of the baseline period.
+
+### Residuals
+
+An important validation step is to check for autocorrelation in the residuals of the fitted model, on the baseline data that was used for fitting. Autocorrelation is often a sign of insufficient model complexity, or that the form of the model error term has not been appropriately chosen.
+
+The two graphs below show:
+
+* Residuals vs Date, in order to display eventual autocorrelation
+* residuals vs Temperature
+
+```{r}
+ggplot(data = df.base.daily) +
+  geom_line(mapping = aes(x=Date, y=pred_med-E)) +
+  geom_ribbon(mapping = aes(x=Date, ymin=pred_low-E, ymax=pred_up-E), alpha=0.2)
+
+```
+
+```{r}
+residuals <- colMeans(la$y_base_pred) - df.base.daily$E
+
+ggplot() +
+  geom_point(mapping = aes(x=residuals, y=lag(residuals, n=1, default=0)))
+
+acf(residuals)
+```
+The second graph is fine, but it seems that these is a trend in the residuals in the first few months and last few months of the year, suggesting that the model doesn't quite capture the winter energy consumption very well.
+
+## Savings
+
+Our Stan model already calculates the expected output $y$ of the reporting period, for each sample $\theta_i$ of the posterior distribution. We can therefore display a probability distribution for each of the data points of the reporting period, and compare it with the measured data in the same period.
+
+The following graph compares the energy use measured during the **reporting period** (points) with the probability distributions of energy use predicted by the model during the same period.
+
+```{r}
+# Extracting full predictive distributions from the stanfit object
+y_repo_pred <- la$y_repo_pred
+# Quantiles
+y_repo_quan <- apply(y_repo_pred, 2, quantile, probs=c(0.025, 0.5, 0.975))
+# Data frame
+df.repo.daily <- df.repo.daily %>% mutate(pred_low = y_repo_quan[1, ],
+                                          pred_med = y_repo_quan[2, ],
+                                          pred_up = y_repo_quan[3, ])
+# Plot
+ggplot(data = df.repo.daily) +
+  geom_point(mapping = aes(x=T, y=E)) +
+  geom_line(mapping = aes(x=T, y=pred_med), color='red') +
+  geom_ribbon(mapping = aes(x=T, ymin=pred_low, ymax=pred_up), fill='red', alpha=0.1)
+```
+The savings, i.e. the difference between the measured energy use during the reporting period and their prediction by the model, have been included in the Stan model definition. Similarly to the prediction, **the savings are therefore available as a probability distribution**: we have a full description of any confidence interval we may wish for.
+
+The table of results shown after model fitting shows that
+
+* The mean estimated savings are 69,069 kWh
+* The 95% confidence interval spans between 63,550 and 74,880 kWh
+
+We can also choose to display any quantile of the posterior distribution of savings:
+
+```{r}
+plot(fit1, pars = c("savings"))
+```
+
+However our savings estimate may be biased. The autocorrelated residuals suggest that 
