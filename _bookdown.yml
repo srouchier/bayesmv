@@ -9,7 +9,6 @@ rmd_files:
     "index.Rmd",
     "01-background.Rmd",
     "02-backgroundbayes.Rmd",
-    "11-optCbasics.Rmd",
     "12-optClinreg.Rmd",
     "13-optCchangepoint.Rmd",
     "14-optCautocorr.Rmd",

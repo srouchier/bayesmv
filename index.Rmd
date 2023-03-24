@@ -12,22 +12,21 @@ description: "This is a series and tutorials and courses to apply Bayesian stati
 
 # Welcome {-}
 
-This website promotes the use of Bayesian data analysis for building energy use monitoring, especially in the context of 
-Measurement and Verification (M&V) methods.
-
-**This is a work in progress.**
+This website promotes the use of Bayesian data analysis for building energy use monitoring, especially in the context of Measurement and Verification (M&V) methods.
 
 The target audience of the book are energy experts who may only have a moderate background on statistics and applied mathematics. One of our main arguments for promoting Bayesian data analysis is that it is both universally applicable, and accessible. Our aim is to give all building energy practicioners the tools to accurately assess savings following energy conservation measures, along with their uncertainty.
 
-The first part of the website introduces the reader to the main concepts of building energy monitoring, measurement and verification, and Bayesian data analysis. The amount of theoretical background is voluntarily kept short in order to keep the focus on practical examples. References are included for readers who wish to learn more.
+This guide assumes that the reader already knows the core statistical concepts for M&V: errors and uncertainty, regression basics, and model validation metrics. We will however emphasise some of these terms in order to illustrate the specifics of Bayesian methods.
 
-The second part are tutorials on whole-building energy monitoring and M&V, referred to as "Option C" in the IPMVP documentation.
+The **first part** of the website introduces the reader to the main concepts of [measurement and verification](#back-mv), and [Bayesian data analysis](#back-bayes). The amount of theoretical background is voluntarily kept short in order to keep the focus on practical examples. References are included for readers who wish to learn more.
+
+The **second part** are tutorials on whole-building energy monitoring and M&V, referred to as "Option C" in the IPMVP documentation. This series of three tutorials gradually illustrate the advantages of Bayesian data analysis for M&V:
 
 * [A first tutorial](#optClinreg) serves as an introduction to the Stan platform, and shows that Bayesian analysis obtains the same uncertainty assessments as classical methods, when analytical solutions are available.
 * Once the reader is reassured on the accuracy of our method, [a second tutorial](#optCchangepoint) shows how effortlessly it extends to more complex model structures, where analytical solutions may no longer evaluate uncertainty analytically.
-* [A third tutorial](#optCautocorrA) about autocorrelation?
+* [A third tutorial](#optCautocorrA) addresses the issue of residuals autocorrelation, which often arises after model calibration. We show how to overcome this issue with Bayesian models.
 
-Then there is Option D
+The **third part** of the website is still under construction and will address IPMVP Option D and the so-called Bayesian calibration of building energy models.
 
 ## The content and how to use it {.unnumbered}
 
@@ -38,12 +37,13 @@ Most content is displayed from R notebooks which allow displaying the full code 
 
 Additionally, if you wish to replicate the results shown in these tutorials, you may either download the full book from its repository and run the R markdown files matching the chapters; or only download the data sets and copy/paste the code in your own R files.
 
-We use R as the main programming language for all analyses, but all content is also adaptable to other environments the reader may be more familiar with: Python, Julia or Matlab.
+We use R as the main programming language for all analyses, but all content is also adaptable to other environments the reader may be more familiar with: Python, Julia or Matlab. We mention these alternatives [here](#tools).
 
-## About {.unnumbered}
+## About {-}
 
-Who contributed to the website. How it was made.
+I am [Simon Rouchier](https://srouchier.github.io/), lecturer at the [Université Savoie Mont Blanc](https://www.univ-smb.fr/), Chambéry, France.
 
-## License {.unnumbered}
+This website is the beta version of a future book. It possibly still has some typos and inconsistencies: I welcome all feedback by [email](https://srouchier.github.io/) or through the book's [Github repo](https://github.com/srouchier/buildingenergygeeks).
 
-A good license.
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Licence Creative Commons" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a><br />Ce(tte) œuvre est mise à disposition selon les termes de la <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Licence Creative Commons Attribution - Pas d’Utilisation Commerciale - Partage dans les Mêmes Conditions 4.0 International</a>.
+

@@ -6,20 +6,42 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Chapter 6 Bayesian calibration | Bayesian Measurement and Verification</title>
 <meta name="author" content="Simon Rouchier">
-<meta name="description" content="Some literature and principles of “bayesian calibration”, which is how Option D can be done bayesically.">
+<meta name="description" content="Some literature and principles of “bayesian calibration”, which is how Option D can be done bayesically.  Betancourt, Michael. 2017. “A Conceptual Introduction to Hamiltonian Monte Carlo.” arXiv...">
 <meta name="generator" content="bookdown 0.26 with bs4_book()">
 <meta property="og:title" content="Chapter 6 Bayesian calibration | Bayesian Measurement and Verification">
 <meta property="og:type" content="book">
-<meta property="og:description" content="Some literature and principles of “bayesian calibration”, which is how Option D can be done bayesically.">
+<meta property="og:description" content="Some literature and principles of “bayesian calibration”, which is how Option D can be done bayesically.  Betancourt, Michael. 2017. “A Conceptual Introduction to Hamiltonian Monte Carlo.” arXiv...">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Chapter 6 Bayesian calibration | Bayesian Measurement and Verification">
-<meta name="twitter:description" content="Some literature and principles of “bayesian calibration”, which is how Option D can be done bayesically.">
+<meta name="twitter:description" content="Some literature and principles of “bayesian calibration”, which is how Option D can be done bayesically.  Betancourt, Michael. 2017. “A Conceptual Introduction to Hamiltonian Monte Carlo.” arXiv...">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
 <script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
 <script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
     
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<style type="text/css">
+    /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+        }
+    .hanging div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }
   </style>
 </head>
 <body data-spy="scroll" data-target="#toc">
@@ -46,8 +68,7 @@
 <li class="book-part">Background</li>
 <li><a class="" href="back-mv.html"><span class="header-section-number">1</span> Measurement and verification</a></li>
 <li><a class="" href="back-bayes.html"><span class="header-section-number">2</span> Bayesian data analysis</a></li>
-<li class="book-part">Whole building M&amp;V</li>
-<li><a class="" href="optCbasics.html">IPMVP Option C</a></li>
+<li class="book-part">Whole building M&amp;V: option C</li>
 <li><a class="" href="optClinreg.html"><span class="header-section-number">3</span> Tutorial 1: linear regression and introduction to Stan</a></li>
 <li><a class="" href="optCchangepoint.html"><span class="header-section-number">4</span> Tutorial 2: change-point model</a></li>
 <li><a class="" href="optCautocorr.html"><span class="header-section-number">5</span> Tutorial 3: autocorrelation</a></li>
@@ -67,6 +88,41 @@
 </h1>
 <p>Some literature and principles of “bayesian calibration”, which is how Option D can be done bayesically.</p>
 
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-betancourt2017conceptual" class="csl-entry">
+Betancourt, Michael. 2017. <span>“A Conceptual Introduction to Hamiltonian Monte Carlo.”</span> <em>arXiv Preprint arXiv:1701.02434</em>.
+</div>
+<div id="ref-carstens2018bayesian" class="csl-entry">
+Carstens, Herman, Xiaohua Xia, and Sarma Yadavalli. 2018. <span>“Bayesian Energy Measurement and Verification Analysis.”</span> <em>Energies</em> 11 (2): 380.
+</div>
+<div id="ref-chong2021occupancy" class="csl-entry">
+Chong, Adrian, Godfried Augenbroe, and Da Yan. 2021. <span>“Occupancy Data at Different Spatial Resolutions: Building Energy Performance and Model Calibration.”</span> <em>Applied Energy</em> 286: 116492.
+</div>
+<div id="ref-chong2018guidelines" class="csl-entry">
+Chong, Adrian, and Kathrin Menberg. 2018. <span>“Guidelines for the Bayesian Calibration of Building Energy Models.”</span> <em>Energy and Buildings</em> 174: 527–47.
+</div>
+<div id="ref-gelman2013bayesian" class="csl-entry">
+Gelman, Andrew, John B Carlin, Hal S Stern, David B Dunson, Aki Vehtari, and Donald B Rubin. 2013. <em>Bayesian Data Analysis</em>. CRC press.
+</div>
+<div id="ref-james2013introduction" class="csl-entry">
+James, Gareth, Daniela Witten, Trevor Hastie, and Robert Tibshirani. 2013. <em>An Introduction to Statistical Learning</em>. Vol. 112. Springer.
+</div>
+<div id="ref-jcgm2008evaluation" class="csl-entry">
+JCGM. 2008. <span>“Evaluation of Measurement Data—Guide to the Expression of Uncertainty in Measurement.”</span> <em>Int. Organ. Stand. Geneva ISBN</em> 50: 134.
+</div>
+<div id="ref-kennedy2001bayesian" class="csl-entry">
+Kennedy, Marc C, and Anthony O’Hagan. 2001. <span>“Bayesian Calibration of Computer Models.”</span> <em>Journal of the Royal Statistical Society: Series B (Statistical Methodology)</em> 63 (3): 425–64.
+</div>
+<div id="ref-shonder2012bayesian" class="csl-entry">
+Shonder, John A, and Piljae Im. 2012. <span>“Bayesian Analysis of Savings from Retrofit Projects.”</span> <em>ASHRAE Transactions</em> 118: 367.
+</div>
+<div id="ref-shumway2000time" class="csl-entry">
+Shumway, Robert H, and David S Stoffer. 2000. <em>Time Series Analysis and Its Applications</em>. Vol. 3. Springer.
+</div>
+<div id="ref-vehtari2021rank" class="csl-entry">
+Vehtari, Aki, Andrew Gelman, Daniel Simpson, Bob Carpenter, and Paul-Christian Bürkner. 2021. <span>“Rank-Normalization, Folding, and Localization: An Improved r for Assessing Convergence of MCMC.”</span> <em>Bayesian Analysis</em> 1 (1): 1–28.
+</div>
+</div>
 </div>
   <div class="chapter-nav">
 <div class="prev"><a href="optDbasics.html">Option D basics</a></div>

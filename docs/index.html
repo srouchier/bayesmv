@@ -21,6 +21,28 @@
     
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
   </style>
+<style type="text/css">
+    /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+        }
+    .hanging div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }
+  </style>
 </head>
 <body data-spy="scroll" data-target="#toc">
 
@@ -46,8 +68,7 @@
 <li class="book-part">Background</li>
 <li><a class="" href="back-mv.html"><span class="header-section-number">1</span> Measurement and verification</a></li>
 <li><a class="" href="back-bayes.html"><span class="header-section-number">2</span> Bayesian data analysis</a></li>
-<li class="book-part">Whole building M&amp;V</li>
-<li><a class="" href="optCbasics.html">IPMVP Option C</a></li>
+<li class="book-part">Whole building M&amp;V: option C</li>
 <li><a class="" href="optClinreg.html"><span class="header-section-number">3</span> Tutorial 1: linear regression and introduction to Stan</a></li>
 <li><a class="" href="optCchangepoint.html"><span class="header-section-number">4</span> Tutorial 2: change-point model</a></li>
 <li><a class="" href="optCautocorr.html"><span class="header-section-number">5</span> Tutorial 3: autocorrelation</a></li>
@@ -64,20 +85,19 @@
   </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><!--bookdown:title:end--><!--bookdown:title:start--><div id="welcome" class="section level1 unnumbered">
 <h1>Welcome<a class="anchor" aria-label="anchor" href="#welcome"><i class="fas fa-link"></i></a>
 </h1>
-<p>This website promotes the use of Bayesian data analysis for building energy use monitoring, especially in the context of
-Measurement and Verification (M&amp;V) methods.</p>
-<p><strong>This is a work in progress.</strong></p>
+<p>This website promotes the use of Bayesian data analysis for building energy use monitoring, especially in the context of Measurement and Verification (M&amp;V) methods.</p>
 <p>The target audience of the book are energy experts who may only have a moderate background on statistics and applied mathematics. One of our main arguments for promoting Bayesian data analysis is that it is both universally applicable, and accessible. Our aim is to give all building energy practicioners the tools to accurately assess savings following energy conservation measures, along with their uncertainty.</p>
-<p>The first part of the website introduces the reader to the main concepts of building energy monitoring, measurement and verification, and Bayesian data analysis. The amount of theoretical background is voluntarily kept short in order to keep the focus on practical examples. References are included for readers who wish to learn more.</p>
-<p>The second part are tutorials on whole-building energy monitoring and M&amp;V, referred to as “Option C” in the IPMVP documentation.</p>
+<p>This guide assumes that the reader already knows the core statistical concepts for M&amp;V: errors and uncertainty, regression basics, and model validation metrics. We will however emphasise some of these terms in order to illustrate the specifics of Bayesian methods.</p>
+<p>The <strong>first part</strong> of the website introduces the reader to the main concepts of <a href="back-mv.html#back-mv">measurement and verification</a>, and <a href="back-bayes.html#back-bayes">Bayesian data analysis</a>. The amount of theoretical background is voluntarily kept short in order to keep the focus on practical examples. References are included for readers who wish to learn more.</p>
+<p>The <strong>second part</strong> are tutorials on whole-building energy monitoring and M&amp;V, referred to as “Option C” in the IPMVP documentation. This series of three tutorials gradually illustrate the advantages of Bayesian data analysis for M&amp;V:</p>
 <ul>
 <li>
 <a href="optClinreg.html#optClinreg">A first tutorial</a> serves as an introduction to the Stan platform, and shows that Bayesian analysis obtains the same uncertainty assessments as classical methods, when analytical solutions are available.</li>
 <li>Once the reader is reassured on the accuracy of our method, <a href="optCchangepoint.html#optCchangepoint">a second tutorial</a> shows how effortlessly it extends to more complex model structures, where analytical solutions may no longer evaluate uncertainty analytically.</li>
 <li>
-<a href="#optCautocorrA">A third tutorial</a> about autocorrelation?</li>
+<a href="#optCautocorrA">A third tutorial</a> addresses the issue of residuals autocorrelation, which often arises after model calibration. We show how to overcome this issue with Bayesian models.</li>
 </ul>
-<p>Then there is Option D</p>
+<p>The <strong>third part</strong> of the website is still under construction and will address IPMVP Option D and the so-called Bayesian calibration of building energy models.</p>
 <div id="the-content-and-how-to-use-it" class="section level2 unnumbered">
 <h2>The content and how to use it<a class="anchor" aria-label="anchor" href="#the-content-and-how-to-use-it"><i class="fas fa-link"></i></a>
 </h2>
@@ -90,17 +110,14 @@ Measurement and Verification (M&amp;V) methods.</p>
 <a href="https://mc-stan.org/">Install Stan</a>. You can learn Stan basics here but here is a link to the full Stan documentation.</li>
 </ul>
 <p>Additionally, if you wish to replicate the results shown in these tutorials, you may either download the full book from its repository and run the R markdown files matching the chapters; or only download the data sets and copy/paste the code in your own R files.</p>
-<p>We use R as the main programming language for all analyses, but all content is also adaptable to other environments the reader may be more familiar with: Python, Julia or Matlab.</p>
+<p>We use R as the main programming language for all analyses, but all content is also adaptable to other environments the reader may be more familiar with: Python, Julia or Matlab. We mention these alternatives <a href="back-bayes.html#tools">here</a>.</p>
 </div>
 <div id="about" class="section level2 unnumbered">
 <h2>About<a class="anchor" aria-label="anchor" href="#about"><i class="fas fa-link"></i></a>
 </h2>
-<p>Who contributed to the website. How it was made.</p>
-</div>
-<div id="license" class="section level2 unnumbered">
-<h2>License<a class="anchor" aria-label="anchor" href="#license"><i class="fas fa-link"></i></a>
-</h2>
-<p>A good license.</p>
+<p>I am <a href="https://srouchier.github.io/">Simon Rouchier</a>, lecturer at the <a href="https://www.univ-smb.fr/">Université Savoie Mont Blanc</a>, Chambéry, France.</p>
+<p>This website is the beta version of a future book. It possibly still has some typos and inconsistencies: I welcome all feedback by <a href="https://srouchier.github.io/">email</a> or through the book’s <a href="https://github.com/srouchier/buildingenergygeeks">Github repo</a>.</p>
+<p><a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Licence Creative Commons" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png"></a><br>Ce(tte) œuvre est mise à disposition selon les termes de la <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Licence Creative Commons Attribution - Pas d’Utilisation Commerciale - Partage dans les Mêmes Conditions 4.0 International</a>.</p>
 
 </div>
 </div>
@@ -116,7 +133,6 @@ Measurement and Verification (M&amp;V) methods.</p>
 <li><a class="nav-link" href="#welcome">Welcome</a></li>
 <li><a class="nav-link" href="#the-content-and-how-to-use-it">The content and how to use it</a></li>
 <li><a class="nav-link" href="#about">About</a></li>
-<li><a class="nav-link" href="#license">License</a></li>
 </ul>
 
       <div class="book-extra">

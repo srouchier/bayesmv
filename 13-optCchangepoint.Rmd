@@ -1,5 +1,7 @@
 # Tutorial 2: change-point model {#optCchangepoint}
 
+click here for an interactive version of this tutorial
+
 This is based on the option C example I already wrote. I need to simplify some parts of it, and elaborate other parts.
 
 ```{r, warning=FALSE, message=FALSE}

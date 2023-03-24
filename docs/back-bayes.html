@@ -6,20 +6,42 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Chapter 2 Bayesian data analysis | Bayesian Measurement and Verification</title>
 <meta name="author" content="Simon Rouchier">
-<meta name="description" content="This page will be based on the presctiptive part of my contribution to the UAG guide. I will need to elaborate some of it and simplify other parts. starting here Bayesian statistics are mentioned...">
+<meta name="description" content="This chapter only covers the basics of Bayesian inference, the motivation behind this choice and how to use it in practice. The internet has a lot of reading material on the matter if you wish to...">
 <meta name="generator" content="bookdown 0.26 with bs4_book()">
 <meta property="og:title" content="Chapter 2 Bayesian data analysis | Bayesian Measurement and Verification">
 <meta property="og:type" content="book">
-<meta property="og:description" content="This page will be based on the presctiptive part of my contribution to the UAG guide. I will need to elaborate some of it and simplify other parts. starting here Bayesian statistics are mentioned...">
+<meta property="og:description" content="This chapter only covers the basics of Bayesian inference, the motivation behind this choice and how to use it in practice. The internet has a lot of reading material on the matter if you wish to...">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Chapter 2 Bayesian data analysis | Bayesian Measurement and Verification">
-<meta name="twitter:description" content="This page will be based on the presctiptive part of my contribution to the UAG guide. I will need to elaborate some of it and simplify other parts. starting here Bayesian statistics are mentioned...">
+<meta name="twitter:description" content="This chapter only covers the basics of Bayesian inference, the motivation behind this choice and how to use it in practice. The internet has a lot of reading material on the matter if you wish to...">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
 <script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
 <script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
     
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<style type="text/css">
+    /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+        }
+    .hanging div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }
   </style>
 </head>
 <body data-spy="scroll" data-target="#toc">
@@ -46,8 +68,7 @@
 <li class="book-part">Background</li>
 <li><a class="" href="back-mv.html"><span class="header-section-number">1</span> Measurement and verification</a></li>
 <li><a class="active" href="back-bayes.html"><span class="header-section-number">2</span> Bayesian data analysis</a></li>
-<li class="book-part">Whole building M&amp;V</li>
-<li><a class="" href="optCbasics.html">IPMVP Option C</a></li>
+<li class="book-part">Whole building M&amp;V: option C</li>
 <li><a class="" href="optClinreg.html"><span class="header-section-number">3</span> Tutorial 1: linear regression and introduction to Stan</a></li>
 <li><a class="" href="optCchangepoint.html"><span class="header-section-number">4</span> Tutorial 2: change-point model</a></li>
 <li><a class="" href="optCautocorr.html"><span class="header-section-number">5</span> Tutorial 3: autocorrelation</a></li>
@@ -65,76 +86,296 @@
 <h1>
 <span class="header-section-number">2</span> Bayesian data analysis<a class="anchor" aria-label="anchor" href="#back-bayes"><i class="fas fa-link"></i></a>
 </h1>
-<p>This page will be based on the presctiptive part of my contribution to the UAG guide. I will need to elaborate some of it and simplify other parts.</p>
-<p>starting here</p>
-<p>Bayesian statistics are mentioned in the Annex B of the ASHRAE Guideline 14, after it has been observed that standard approaches make it difficult to estimate the savings uncertainty when complex models are required:</p>
-<p><em>“Savings uncertainty can only be determined exactly when energy use is a linear function of some independent variable(s). For more complicated models of energy use, such as changepoint models, and for data with serially autocorrelated errors, approximate formulas must be used. These approximations provide reasonable accuracy when compared with simulated data, but in general it is difficult to determine their accuracy in any given situation. <strong>One alternative method for determining savings uncertainty to any desired degree of accuracy is to use a Bayesian approach.”</strong> </em></p>
-<p>Some references then propose to apply Bayesian analysis to M&amp;V:</p>
+<p>This chapter only covers the basics of Bayesian inference, the motivation behind this choice and how to use it in practice. The internet has <em>a lot</em> of reading material on the matter if you wish to go further.</p>
 <ul>
-<li>Shonder, J. A., &amp; Im, P. (2012). Bayesian analysis of savings from retrofit projects. ASHRAE Transactions, 118, 367.</li>
-<li>Lira, I. (2016). The GUM revision: the Bayesian view toward the expression of measurement uncertainty. European Journal of Physics, 37(2), 025803.</li>
-<li>Carstens, H., Xia, X., &amp; Yadavalli, S. (2018). Bayesian energy measurement and verification analysis. Energies, 11(2), 380.</li>
+<li>
+<a href="http://www.stat.columbia.edu/~gelman/book/">Gelman et al’s book on Bayesian data analysis</a>, aka The Big Bayesian Book, covers every aspect of this vast field and is very example-oriented.</li>
+<li>
+<a href="https://arxiv.org/abs/2011.01808">Bayesian workflow</a> to data analysis is a practical summary, although still very comprehensive.</li>
+<li>
+<a href="https://xcelab.net/rm/statistical-rethinking/">Statistical rethinking</a> is another vast Bayesian course spanning from theoretical fundamentals to practical examples.</li>
+<li>
+<a href="https://betanalpha.github.io/writing/">Michael Betancourt’s extensive lectures</a> range from basics of probability theory to extremely detailed Bayesian workflow.</li>
 </ul>
-<p>Several advantages and drawbacks are mentioned by (Carstens 2018), including:</p>
-<ol style="list-style-type: decimal">
-<li><strong>Because Bayesian models are probabilistic, uncertainty is automatically and exactly quantified. Confidence intervals can be interpreted in the way most people understand them: degrees of belief about the value of the parameter</strong></li>
-<li>The Bayesian approach is widely used and is rapidly gaining popularity in other scientific fields. (Lira 2016) relates that even the GUM (adopted by many societies of physics, chemistry, electrotechnics, etc.) is being rewritten to be more consistent with this approach. Since M&amp;V reports uncertainty according to the GUM, Bayesian calculations would be useful.</li>
-<li><strong>Bayesian models are more universal and flexible than standard methods. Models are also modular and can be designed to suit the problem. For example, it is no different to create terms for serial correlation, or heteroscedasticity (non-constant variance) than it is to specify an ordinary linear model.</strong></li>
-<li>Bayesian models can account for model-selection uncertainty.</li>
-<li>Bayesian approaches allow real-time or online updating of estimates.</li>
-<li>The Bayesian approach allows for the incorporation of prior information where appropriate.</li>
-<li>When the savings need to be calculated for “normalised conditions”, for example, a ‘typical meteorological year’, rather than the conditions during the post-retrofit monitoring period, it is not possible to quantify uncertainty using current methods. However, Shonder and Im (2012) have shown that it can be naturally and easily quantified using the Bayesian approach.</li>
-</ol>
-<p>The points 1 and 3 above are perhaps the most relevant to a M&amp;V practitioner: we can define any arbitrary model structure to explain the data, and use the exact same set of formulas to obtain the savings uncertainty after the models have been fitted.</p>
-<div id="step-1-setting-up-a-model" class="section level3" number="2.0.1">
-<h3>
-<span class="header-section-number">2.0.1</span> Step 1: setting up a model<a class="anchor" aria-label="anchor" href="#step-1-setting-up-a-model"><i class="fas fa-link"></i></a>
-</h3>
-<p>A Bayesian model is made of two components:</p>
-<ul>
-<li>an observational model <span class="math inline">\(p(y|\theta)\)</span> describes the relationship between the data <span class="math inline">\(y\)</span> and the model parameters <span class="math inline">\(\theta\)</span>
-</li>
-<li>a prior model <span class="math inline">\(p(\theta)\)</span> describes what we may already know about the parameters <span class="math inline">\(\theta\)</span>
-</li>
-</ul>
-<p><strong>For example</strong>, we can define a linear regression model as follows. The model output is an energy use <span class="math inline">\(e\)</span>, which was measured in any number of points during a baseline period. We expect <span class="math inline">\(e\)</span> to follow a normal distribution centered around a linear function of the outdoor temperature <span class="math inline">\(T\)</span> and its squared value <span class="math inline">\(T^2\)</span>:</p>
-<p><span class="math display">\[ e \sim \mathcal{N}(\beta_0 + \beta_1 T + \beta_2 T^2, \sigma)\]</span>
-The approach is however much more flexible than the ordinary linear regression. For instance, we can also assume that the model uncertainty <span class="math inline">\(\sigma\)</span> may depend on the temperature:</p>
-<p><span class="math display">\[ \sigma = \sigma_0 + \sigma_1 T\]</span>
-which accounts to estimating additional parameters to describe an eventual dependency of the prediction residuals with temperature.</p>
-<p>Last, we can specify a <em>prior distribution</em> for some parameters. The following line imposes a search interval for the parameter <span class="math inline">\(\beta_0\)</span> with a uniform distribution</p>
-<p><span class="math display">\[ \beta_0 \sim \mathcal{U}(500, 1500)\]</span>
-In the tutorial below, we will illustrate Bayesian inference with a more complex change-point model with 11 parameters.</p>
-</div>
-<div id="step-2-learning" class="section level3" number="2.0.2">
-<h3>
-<span class="header-section-number">2.0.2</span> Step 2: learning<a class="anchor" aria-label="anchor" href="#step-2-learning"><i class="fas fa-link"></i></a>
-</h3>
-<p>Bayes’ rule formulates the <em>posterior</em> distribution, i.e. the probability distribution of the parameters conditioned on the observed data.</p>
-<p><span class="math display">\[ p(\theta|y) \propto p(y|\theta) p(\theta)\]</span></p>
-<p>In practice, the posterior is not calculated exactly, but approached by a large set of samples <span class="math inline">\(\theta^{(m)}\)</span> produced by a Markov Chain Monte Carlo (MCMC) algorithm. This step is mostly automated and doesn’t require much intervention from the user, except to diagnose and solve eventual convergence problems.</p>
-<p><span class="math display">\[\theta^{(m)} \sim p(\theta|y)\]</span></p>
-</div>
-<div id="step-3-prediction-and-inference" class="section level3" number="2.0.3">
-<h3>
-<span class="header-section-number">2.0.3</span> Step 3: prediction and inference<a class="anchor" aria-label="anchor" href="#step-3-prediction-and-inference"><i class="fas fa-link"></i></a>
-</h3>
-<p>All the quantities we wish to estimate (energy use, savings…) and their uncertainty are directly calculated from the posterior distribution.</p>
-<p>The so-called <em>posterior predictive distribution</em> of new observations <span class="math inline">\(\tilde{y}\)</span> (such as the probability distribution of energy use at each time step of the reporting period), conditioned on the training data set <span class="math inline">\(y\)</span>, can be calculated by calling the observational model on a large enough number of <span class="math inline">\(\theta^{(m)}\)</span> draws:</p>
-<p><span class="math display">\[ p\left(\tilde{y}|y\right) \approx \frac{1}{M} \sum_{m=1}^M p\left(\tilde{y}|\theta^{(m)}\right) \]</span>
-The advantage of this methodology is that steps 2 and 3 will always remain the same, no matter what model structure is chosen at step 1. The practitioner may try different formulations and priors, and essentially re-run the same script to see if the model checks the validation requirements, before automatically obtaining the savings uncertainty.</p>
-</div>
-<div id="stan" class="section level2" number="2.1">
+<div id="motivation-for-a-bayesian-mv" class="section level2" number="2.1">
 <h2>
-<span class="header-section-number">2.1</span> Stan<a class="anchor" aria-label="anchor" href="#stan"><i class="fas fa-link"></i></a>
+<span class="header-section-number">2.1</span> Motivation for a Bayesian M&amp;V<a class="anchor" aria-label="anchor" href="#motivation-for-a-bayesian-mv"><i class="fas fa-link"></i></a>
 </h2>
-<p>What tools to use for Bayesian data analysis</p>
+<p>Bayesian statistics are mentioned in the Annex B of the ASHRAE Guideline 14, after it has been observed that standard approaches make it difficult to estimate the savings uncertainty when complex models are required in a measurement and verification worflow:</p>
+<p><em>“Savings uncertainty can only be determined exactly when energy use is a linear function of some independent variable(s). For more complicated models of energy use, such as changepoint models, and for data with serially autocorrelated errors, approximate formulas must be used. These approximations provide reasonable accuracy when compared with simulated data, but in general it is difficult to determine their accuracy in any given situation. One alternative method for determining savings uncertainty to any desired degree of accuracy is to use a Bayesian approach.”</em></p>
+<p>Still on the topic of measurement and verification, and the estimation of savings uncertainty, several advantages and drawbacks of Bayesian approaches are described by (<span class="citation">Carstens, Xia, and Yadavalli (<a href="bayesian-calibration.html#ref-carstens2018bayesian" role="doc-biblioref">2018</a>)</span>). Advantages include:</p>
 <ul>
-<li>Python, R, Julia or Matlab</li>
-<li>Stan, pymc, pyro or other</li>
+<li>Because Bayesian models are probabilistic, uncertainty is automatically and exactly quantified. Confidence intervals can be interpreted in the way most people understand them: degrees of belief about the value of the parameter.</li>
+<li>Bayesian models are more universal and flexible than standard methods. Models are also modular and can be designed to suit the problem. For example, it is no different to create terms for serial correlation, or heteroscedasticity (non-constant variance) than it is to specify an ordinary linear model.</li>
+<li>The Bayesian approach allows for the incorporation of prior information where appropriate.</li>
+<li>When the savings need to be calculated for “normalised conditions”, for example, a “typical meteorological year”, rather than the conditions during the post-retrofit monitoring period, it is not possible to quantify uncertainty using current methods. However, (<span class="citation">Shonder and Im (<a href="bayesian-calibration.html#ref-shonder2012bayesian" role="doc-biblioref">2012</a>)</span>) have shown that it can be naturally and easily quantified using the Bayesian approach.</li>
 </ul>
-<p>We use Stan, interfaced with R, but the content of the website is adaptable to the other tools.</p>
-
+<p>The first two points above are the most relevant to a data analyst: any arbitrary model structure can be defined to explain the data, and the exact same set of formulas can then be used to obtain any uncertainty after the models have been fitted.</p>
+</div>
+<div id="bayesian-inference-in-theory" class="section level2" number="2.2">
+<h2>
+<span class="header-section-number">2.2</span> Bayesian inference in theory<a class="anchor" aria-label="anchor" href="#bayesian-inference-in-theory"><i class="fas fa-link"></i></a>
+</h2>
+<p>A Bayesian model is defined by two components:</p>
+<ul>
+<li>An observational model <span class="math inline">\(p\left(y|\theta\right)\)</span>, or likelihood function, which describes the relationship between the data <span class="math inline">\(y\)</span> and the model parameters <span class="math inline">\(\theta\)</span>.</li>
+<li>A prior model <span class="math inline">\(p(\theta)\)</span> which encodes eventual assumptions regarding model parameters, independently of the observed data. Specifying prior densities is not mandatory.</li>
+</ul>
+<p>The target of Bayesian <strong>inference</strong> is the estimation of the posterior density <span class="math inline">\(p\left(\theta|y\right)\)</span>, i.e. the probability distribution of the parameters conditioned on the observed data. As a consequence of Bayes’ rule, the posterior is proportional to the product of the two previous densities:</p>
+<p><span class="math display" id="eq:workflow1">\[\begin{equation}
+p(\theta|y) \propto p(y|\theta) p(\theta)
+\tag{2.1}
+\end{equation}\]</span></p>
+<p>This formula can be interpreted as follows: the posterior density is a compromise between assumptions and evidence brought by data. The prior can be “strong” or “weak”, to reflect for a more or less confident prior knowledge. The posterior will stray away from the prior as more data is introduced.</p>
+<div class="figure">
+<span style="display:block;" id="fig:priorposterior"></span>
+<img src="figures/priorposterior.png" alt="Example of estimating a set point temperature after assuming a Normal prior distribution centred around 20°C. The dashed line is the point estimate which would have been obtained if only the data had been considered. The posterior distribution can be seen as a “refinement” of the prior, given the evidence of the data." width="50%"><p class="caption">
+Figure 2.1: Example of estimating a set point temperature after assuming a Normal prior distribution centred around 20°C. The dashed line is the point estimate which would have been obtained if only the data had been considered. The posterior distribution can be seen as a “refinement” of the prior, given the evidence of the data.
+</p>
+</div>
+<p>In general, information from the posterior distribution is represented by summary statistics such as the mean, variance or credible intervals, which can be used to inform decisions and are easier to interpret than the full posterior distribution. Most of these summary statistics take the form of posterior expectation values of certain functions, <span class="math inline">\(f(\theta)\)</span>,</p>
+<p><span class="math display" id="eq:workflow2">\[\begin{equation} \label{posterior_expectation}
+    \mathbb{E}[f(\theta)] = \int p(\theta|y) f(\theta) \mathrm{d} \theta
+    \tag{2.2}
+\end{equation}\]</span></p>
+<p>More sophisticated questions are answered with expectation values of custom functions <span class="math inline">\(f(\theta)\)</span>. One common example is the <strong>posterior predictive distribution</strong>: in many applications, one is not only interested in estimating parameter values, but also the predictions <span class="math inline">\(\tilde{y}\)</span> of the observable during a new period. The distribution of <span class="math inline">\(\tilde{y}\)</span> conditioned on the observed data <span class="math inline">\(y\)</span> is called the posterior predictive distribution:</p>
+<p><span class="math display" id="eq:workflow3">\[\begin{equation}
+p\left(\tilde{y}|y\right) = \int p\left(\tilde{y}|\theta\right) p\left(\theta|y\right) \mathrm{d}\theta
+\tag{2.3}
+\end{equation}\]</span></p>
+<p>The posterior predictive distribution is an average of the model predictions over the posterior distribution of <span class="math inline">\(\theta\)</span>. This formula is equivalent to the concept of using a trained model for prediction.</p>
+<p>Apart from the possibility to define prior distributions, the main specificity of Bayesian analysis is the fact that all variables are encoded as probability densities. The two main results, the parameter posterior <span class="math inline">\(p(\theta|y)\)</span> and the posterior prediction <span class="math inline">\(p\left(\tilde{y}|y\right)\)</span>, are not only point estimates but complete distributions which include a full description of their uncertainty.</p>
+</div>
+<div id="a-bayesian-data-analysis-workflow" class="section level2" number="2.3">
+<h2>
+<span class="header-section-number">2.3</span> A Bayesian data analysis workflow<a class="anchor" aria-label="anchor" href="#a-bayesian-data-analysis-workflow"><i class="fas fa-link"></i></a>
+</h2>
+<p>This section is an excerpt of <a href="https://buildingenergygeeks.org/workflow.html">the author’s larger website</a> on building energy statistical modelling.</p>
+<div id="overview" class="section level3" number="2.3.1">
+<h3>
+<span class="header-section-number">2.3.1</span> Overview<a class="anchor" aria-label="anchor" href="#overview"><i class="fas fa-link"></i></a>
+</h3>
+<p>As was mentioned in Sec. <a href="back-mv.html#back-stats">1.3</a>, inverse problems are all but trivial. It is possible that the available data is simply insufficient to bring useful inferences, but that we still try to train an unsuitable model with it. Statistical analysts need the right tools to guide model selection and training, and to warn them when there is a risk of biased inferences and predictions.</p>
+<p>This chapter is an attempt to summarize the essential points of a Bayesian workflow from a building energy perspective. Frequentist inference is also mentioned, but as a particular case of Bayesian inference.</p>
+<p>Gelman et al. (<span class="citation">Gelman et al. (<a href="bayesian-calibration.html#ref-gelman2013bayesian" role="doc-biblioref">2013</a>)</span>) divide the process of Bayesian data analysis into three steps illustrated by Fig. <a href="back-bayes.html#fig:workflowonemodel">2.2</a>:</p>
+<ol style="list-style-type: decimal">
+<li>Setting up a full probability model;</li>
+<li>Conditioning on observed data (learning);</li>
+<li>Evaluating the fit of the model and the implications of the resulting posterior (checking and validation).</li>
+</ol>
+<div class="figure">
+<span style="display:block;" id="fig:workflowonemodel"></span>
+<img src="figures/workflow1.png" alt="A workflow for the proper specification and training of one model. Most of the workflow is similar for frequentist and Bayesian inference." width="90%"><p class="caption">
+Figure 2.2: A workflow for the proper specification and training of one model. Most of the workflow is similar for frequentist and Bayesian inference.
+</p>
+</div>
+</div>
+<div id="step-1-model-specification" class="section level3" number="2.3.2">
+<h3>
+<span class="header-section-number">2.3.2</span> Step 1: model specification<a class="anchor" aria-label="anchor" href="#step-1-model-specification"><i class="fas fa-link"></i></a>
+</h3>
+<p>The first step into building our model is a conceptual analysis of the system and the available data. The first question is to decide what we want to learn from the data, and is related to the choice of measurement and modelling boundaries mentioned in Sec. <a href="back-mv.html#boundaries">1.2</a>, and the choice of model structure: which of the measurements is the dependent variable <span class="math inline">\(y\)</span>, which are the relevant explanatory variables <span class="math inline">\(x\)</span>, and how will the model parameters <span class="math inline">\(\theta\)</span> be defined.</p>
+<p>The model definition is greatly impacted by the time resolution and length of the dataset. Higher time resolutions (under an hour) enable the choice of dynamical models, which can encode more inferential information but imply a more complex development. Longer datasets (several months) enable the aggregation of data over longer resolutions and observations covering different weather conditions.</p>
+<p>The next step is the development of the model: the translation of the conceptual narrative of the system into formal mathematical descriptions. The target is to formulate the entire system into probabilities that our fitting method can work with. In the case of simple regression models, the observational model may be summarized by a single likelihood function <span class="math inline">\(p(y|\theta)\)</span>, eventually conditioned on explanatory variables.</p>
+<p>If the practitioner wishes to use a regression model to explain the relationship between the parameters and the data, doing so in a Bayesian framework is very similar to the usual (frequentist) framework. As an example, a Bayesian model for linear regression with three parameters <span class="math inline">\((\theta_0,\theta_1,\theta_2)\)</span> and two explanatory variables <span class="math inline">\((X_1,X_2)\)</span> may read:
+<span class="math display" id="eq:workflow5">\[\begin{align}
+    p(y|\theta,X) &amp; = N\left(\theta_0 + \theta_1 X_1 + \theta_2 X_2, \sigma\right) \tag{2.4} \\
+    p(\theta_i) &amp; = \Gamma(\alpha_i, \beta_i) \tag{2.5}
+\end{align}\]</span></p>
+<p>This means that <span class="math inline">\(y\)</span> follows a Normal distribution whose expectation is a linear function of <span class="math inline">\(\theta\)</span> and <span class="math inline">\(X\)</span>, with standard deviation <span class="math inline">\(\sigma\)</span> (the measurement error). The second equation is the prior model: in this example, each parameter is assigned a Gamma prior distribution parameterised by a shape <span class="math inline">\(\alpha\)</span> and a scale <span class="math inline">\(\beta\)</span>. Other model structures can be formulated similarly: change-point models, polynomials, models with categorical variables… Bayesian modelling however allows for much more flexibility:</p>
+<ul>
+<li>Other distributions than the Normal distribution can be used in the observational model;</li>
+<li>Hierarchical modelling is possible: parameters can be assigned a prior distribution with parameters which have their own (hyper)prior distribution;</li>
+<li>Heteroscedasticity can be encoded by assuming a relationship between the error term and explanatory variables, etc.</li>
+</ul>
+<p>More complex models with latent variables have separate expressions for the respective conditional probabilities of the observations <span class="math inline">\(y\)</span>, latent variables <span class="math inline">\(z\)</span> and parameters <span class="math inline">\(\theta\)</span>. In this case, there is a likelihood function <span class="math inline">\(p(y,z|\theta)\)</span> and a <em>marginal</em> likelihood function <span class="math inline">\(p(y|\theta)\)</span> so that:
+<span class="math display" id="eq:workflow6">\[\begin{equation}
+    p(y|\theta) = \int p(y,z|\theta) \mathrm{d}z
+    \tag{2.6}
+\end{equation}\]</span></p>
+<p>The IPMVP option D relies on the use of calibrated building energy simulation (BES) models. These models are described by a much larger number of parameters and equations that the simple regression models typically used for other IPMVP options. In this context, it is not feasible to fully describe BES models in the form of a simple likelihood function <span class="math inline">\(p(y|\theta)\)</span>. In order to apply Bayesian uncertainty analysis to a BES model, it is possible to first approximate it with a Gaussian process (GP) model emulator. This process is denoted Bayesian calibration and was based on the seminal work of Kennedy and O’Hagan (<span class="citation">Kennedy and O’Hagan (<a href="bayesian-calibration.html#ref-kennedy2001bayesian" role="doc-biblioref">2001</a>)</span>). As opposed to the manual adjustment of building energy model parameters, Bayesian calibration explicitly quantifies uncertainties in calibration parameters, discrepancies between model predictions and observed values, as well as observation errors (<span class="citation">Chong and Menberg (<a href="bayesian-calibration.html#ref-chong2018guidelines" role="doc-biblioref">2018</a>)</span>).</p>
+</div>
+<div id="priorpredictivechecking" class="section level3" number="2.3.3">
+<h3>
+<span class="header-section-number">2.3.3</span> Prior predictive checking<a class="anchor" aria-label="anchor" href="#priorpredictivechecking"><i class="fas fa-link"></i></a>
+</h3>
+<p>The full probability model is the formalization of many assumptions regarding the data-generating process. In theory, the model can be formulated only based on domain expertise, regardless of the data. In practice, a model which is inconsistent with the data has little chance to yield informative inferences after training. The prior predictive distribution, or marginal distribution of observations <span class="math inline">\(p(y)\)</span>, is a way to check for the consistency of our expertise.</p>
+<p><span class="math display" id="eq:workflow7">\[\begin{equation}
+p\left(y\right) = \int p\left(y|\theta\right) p\left(\theta\right) \mathrm{d}\theta
+\tag{2.7}
+\end{equation}\]</span></p>
+<p>Basically, computing this distribution is equivalent to running a few simulations of a numerical model before its training, with some assumed values of the parameters. In Bayesian terms, we first draw a finite number of parameter vectors <span class="math inline">\(\tilde{\theta}^{(m)}\)</span> from the prior distribution, and use each of them to compute a model output <span class="math inline">\(\tilde{y}^{(m)}\)</span>:</p>
+<p><span class="math display" id="eq:workflow9">\[\begin{align}
+    \tilde{\theta}^{(m)} &amp; \sim p(\theta) \tag{2.8} \\
+    \tilde{y}^{(m)} &amp; \sim p(y|\tilde{\theta}^{(m)})
+    \tag{2.9}
+\end{align}\]</span></p>
+<p>This set of model outputs approximates the prior probability distribution. If large inconsistencies can be spotted between this distribution and measurements, we can adjust some assumptions regarding the prior definition or the structure of the observational model. An example of prior predictive checking is shown on the top right of Fig. <a href="back-bayes.html#fig:workflowonemodel">2.2</a>, which suggests a model structures which does not contradict the observations.</p>
+</div>
+<div id="computation" class="section level3" number="2.3.4">
+<h3>
+<span class="header-section-number">2.3.4</span> Step 2: computation with Markov Chain Monte Carlo<a class="anchor" aria-label="anchor" href="#computation"><i class="fas fa-link"></i></a>
+</h3>
+<p>Except in a few convenient situations, the posterior distribution is not analytically tractable. In practice, rather than finding an exact solution for it, it is estimated by approximate methods. The most popular option for approximate posterior inference are Markov Chain Monte Carlo (MCMC) sampling methods. When it is not possible or not computationally efficient to sample directly from the posterior distribution, Markov Chain simulation is used to stochastically explore the typical set, i.e. the regions of parameter space which have a significant contribution to the desired expectations. Markov chains used in MCMC methods are designed so that their stationary distribution is the posterior distribution. If the chain is long enough, the state history of the chain provides samples from the typical set <span class="math inline">\(\left(\theta^{(1)},...,\theta^{(S)}\right)\)</span>
+<span class="math display" id="eq:workflow10">\[\begin{equation}
+    \theta^{(s)} \sim p(\theta | y)
+    \tag{2.10}
+\end{equation}\]</span>
+where each draw <span class="math inline">\(\theta^{(s)}\)</span> contains a value for each of the parameters of the model.</p>
+<p>This guide does not aim at explaining MCMC algorithms and their characteristics, but we may refer to <a href="https://arxiv.org/abs/1701.02434">this paper</a> (<span class="citation">Betancourt (<a href="bayesian-calibration.html#ref-betancourt2017conceptual" role="doc-biblioref">2017</a>)</span>) for a description of the state-of-the-art Hamiltonian Monte Carlo alogrithm.</p>
+<p>Posterior expectation values can be accurately estimated by Monte Carlo estimator. Based on exact independent random samples from the posterior distribution <span class="math inline">\(\left(\theta^{(1)},...,\theta^{(S)}\right) \sim p(\theta | y)\)</span>, the expectation of any function <span class="math inline">\(f(\theta)\)</span> can be estimated with
+<span class="math display" id="eq:workflow11">\[\begin{equation}
+    \mathbb{E}[f(\theta)] \approx
+    \frac{1}{N} \sum_{n=1}^{N} f(\theta)^{(n)}
+\tag{2.11}
+\end{equation}\]</span></p>
+<p>Markov Chain Monte Carlo estimators converge to the true expectation values as the number of draws approaches infinity. In practice, diagnostics must be applied to check that the estimator follows the central limit theorem, which ensures that the estimator is unbiased after a finite number of draws. For that purpose it is first recommended to compute the (split-)<span class="math inline">\(\hat{R}\)</span> statistic, or Gelman-Rubin statistic, with multiple chains initialized at different initial positions and split into two halves (<span class="citation">Gelman et al. (<a href="bayesian-calibration.html#ref-gelman2013bayesian" role="doc-biblioref">2013</a>)</span>). The <span class="math inline">\(\hat{R}\)</span> statistic measures for each scalar parameter, <span class="math inline">\(\theta\)</span>, the ratio of samples variance within each chain <span class="math inline">\(W\)</span> to the sample variance of all combined chains <span class="math inline">\(B\)</span>,</p>
+<p><span class="math display" id="eq:workflow12">\[\begin{equation}
+    \hat{R} = \sqrt{\frac{1}{W} \left(\frac{N-1}{N}W + \frac{1}{N}B \right)}
+    \tag{2.12}
+\end{equation}\]</span></p>
+<p>where <span class="math inline">\(N\)</span> is the number of samples. If the chains have not converged, <span class="math inline">\(W\)</span> will underestimate the variance, since the individual chains have not had time to range all over the stationary distribution, and <span class="math inline">\(B\)</span> will overestimate the variance, since the starting positions were chosen to be overdispersed.</p>
+<p>Another important convergence diagnostics tool is the effective sample size (ESS), defined as:</p>
+<p><span class="math display" id="eq:workflow13">\[\begin{equation}
+    \text{ESS} = \frac{N}{1 + 2 \sum_{l=1}^{\infty} \rho_l}
+    \tag{2.13}
+\end{equation}\]</span></p>
+<p>with <span class="math inline">\(\rho_l\)</span> the lag-<span class="math inline">\(l\)</span> autocorrelation of a function <span class="math inline">\(f\)</span> over the history of the Markov chain. The effective sample size is an estimate of the number of independent samples from the posterior distribution.</p>
+<p>The diagnostic tools introduced in this section provide a principled workflow for reliable Bayesian inferences. They are readily available in most Bayesian computation libraries. Based on the recent improvements to the <span class="math inline">\(\hat{R}\)</span> statistic (<span class="citation">Vehtari et al. (<a href="bayesian-calibration.html#ref-vehtari2021rank" role="doc-biblioref">2021</a>)</span>), it is recommended to use the samples only if <span class="math inline">\(\hat{R} &lt; 1.01\)</span> and <span class="math inline">\(\text{ESS} &gt; 400\)</span>.</p>
+</div>
+<div id="modelvalidation" class="section level3" number="2.3.5">
+<h3>
+<span class="header-section-number">2.3.5</span> Step 3: model checking and validation<a class="anchor" aria-label="anchor" href="#modelvalidation"><i class="fas fa-link"></i></a>
+</h3>
+<p>After model specification and learning, the third step of the workflow is model checking and validation. It should be conducted before any conclusions are drawn, and before the prediction accuracy of the model is estimated.</p>
+<ul>
+<li><strong>The posterior predictive distribution</strong></li>
+</ul>
+<p>The basic way of checking the fit of a model to data is to draw simulated values from the trained model and compare them to the observed data. In a non-Bayesian framework, we would pick the most likely point estimate of parameters, such as the maximum likelihood estimate, use it to compute the model output <span class="math inline">\(\hat{y}\)</span>, and conduct residual analysis. In a Bayesian framework, posterior predictive checking allows some more possibilities.</p>
+<p>The posterior predictive distribution is the distribution of the observable <span class="math inline">\(\tilde{y}\)</span> (the model output) conditioned on the observed data <span class="math inline">\(y\)</span>:
+<span class="math display" id="eq:workflow14">\[\begin{equation}
+p\left(\tilde{y}|y\right) = \int p\left(\tilde{y}|\theta\right) p\left(\theta | y\right) \mathrm{d}\theta
+\tag{2.14}
+\end{equation}\]</span>
+This definition is very similar to the prior predictive distribution given in Sec. <a href="back-bayes.html#priorpredictivechecking">2.3.3</a>, except that the prior <span class="math inline">\(p(\theta)\)</span> has been replaced by the posterior <span class="math inline">\(p(\theta|y)\)</span>. Similarly, it is simple to compute if the posterior has been approximated by an MCMC procedure: we first draw a finite number of parameter vectors <span class="math inline">\(\theta^{(m)}\)</span> from the posterior distribution, and use each of them to compute a model output <span class="math inline">\(\tilde{y}^{(m)}\)</span>:
+<span class="math display" id="eq:workflow16">\[\begin{align}
+    \theta^{(m)} &amp; \sim p(\theta|y) \tag{2.15}\\
+    \tilde{y}^{(m)} &amp; \sim p(y|\theta^{(m)})
+    \tag{2.16}
+\end{align}\]</span>
+This set of model outputs approximates the posterior probability distribution.</p>
+<p>The following methods of model checking may apply to either a frequentist or a Bayesian framework.</p>
+<ul>
+<li><p>If the fitting returns a point estimate of parameters <span class="math inline">\(\hat{\theta}\)</span>, then a single profile of model output <span class="math inline">\(\hat{y}\)</span> can be calculated from it, either to be compared with the training data set <span class="math inline">\(y_\mathit{train}\)</span> or to a separate test data set <span class="math inline">\(y_\mathit{test}\)</span>.</p></li>
+<li><p>If the fitting returns a posterior distribution <span class="math inline">\(p(y|\theta)\)</span>, the same comparisons may be applied to any of the <span class="math inline">\(\tilde{y}^{(m)}\)</span> samples.</p></li>
+<li><p><strong>Measures of model adequacy</strong></p></li>
+</ul>
+<p>After fitting, either ordinary linear regression or more sophisticated ones, some metrics may assess the predictive accuracy of the model.</p>
+<ul>
+<li>The R-squared (<span class="math inline">\(R^2\)</span>) index is the proportion of the variance of the dependent variable that is explained by the regression model (closest to 1 is better)</li>
+</ul>
+<p><span class="math display" id="eq:workflow17">\[\begin{equation}
+    R^2 = 1-\frac{\sum_{i=1}^N\left(y_i - \hat{y}_i\right)^2}{\sum_{i=1}^N\left(y_i - \bar{y}_i\right)^2}
+    \tag{2.17}
+\end{equation}\]</span></p>
+<ul>
+<li>The root-mean-square-error (RMSE) simply measures the differences between model predictions <span class="math inline">\(\hat{y}\)</span> and observations <span class="math inline">\(y\)</span> (lower is better)</li>
+</ul>
+<p><span class="math display" id="eq:workflow18">\[\begin{equation}
+\mathrm{CV(RMSE)} = \frac{1}{\bar{y}} \sqrt{\frac{\sum_{i=1}^N\left(\hat{y}_i-y_i\right)^2}{N}}
+\tag{2.18}
+\end{equation}\]</span></p>
+<ul>
+<li>Coverage Width-based Criterion (CWC) (<span class="citation">Chong, Augenbroe, and Yan (<a href="bayesian-calibration.html#ref-chong2021occupancy" role="doc-biblioref">2021</a>)</span>), an indicator for probabilistic forecasts which measures the quality of the predictions based on both their accuracy and precision.</li>
+</ul>
+<p>The <span class="math inline">\(R^2\)</span> and CV-RMSE indices are too often treated as validation metrics. If they are calculated using a test data set, they can indeed estimate the model predictive ability outside of the training data set. They however do not ensure that the model correctly captures the data generating process: this is what residual analysis is for.</p>
+<ul>
+<li><strong>Residual analysis </strong></li>
+</ul>
+<p>The hypothesis of an unbiased model assumes that the difference between the model output and the observed temperature is a sequence of independent, identically distributed variables following a Gaussian distribution with zero mean and constant covariance. In the example of a linear regression model, this condition may read:
+<span class="math display" id="eq:workflow19">\[\begin{equation}
+    r_i = y_i - \left( \hat{\theta}_0 + \hat{\theta}_1 X_{i,1} + \hat{\theta}_2 X_{i,2} \right) \sim N(0,\sigma)
+    \tag{2.19}
+\end{equation}\]</span>
+where <span class="math inline">\(r_i\)</span> are the prediction <strong>residuals</strong>. Residual analysis is the process of checking the validity of their four hypotheses (independence, identical distribution, zero mean, constant variance), and the main step of model validation. It allows identifying problems that may arise after fitting a regression model (<span class="citation">James et al. (<a href="bayesian-calibration.html#ref-james2013introduction" role="doc-biblioref">2013</a>)</span>), among which: correlation of error terms, outliers, high leverage points, colinearity…</p>
+<div class="figure">
+<span style="display:block;" id="fig:residuals"></span>
+<img src="figures/residuals.png" alt="Example of residual plots after an ordinary linear regression in R: fitted vs residuals, Q-Q plot, scale location and residuals vs leverage" width="100%"><p class="caption">
+Figure 2.3: Example of residual plots after an ordinary linear regression in R: fitted vs residuals, Q-Q plot, scale location and residuals vs leverage
+</p>
+</div>
+<p>Residual analysis can be performed by an array of tests and graphs, some of which are shown on Fig. <a href="back-bayes.html#fig:residuals">2.3</a>.</p>
+<ul>
+<li>A simple plot of the residuals versus the model output should not display any trend. The same goes for a plot of residuals vs any of the explanatory variables. Should a trend be visible, the model structure is probably insufficient to explain the data.</li>
+<li>A quantile-quantile (Q-Q) plot (upper right) is a way to check if the distribution of residuals is approximately Gaussian</li>
+<li>The scale-location plot (lower left) is a way to check the hypothesis of homoskedasticity, i.e. constant variance</li>
+<li>The residuals vs leverage plot (lower right) allows identifying eventual outliers and high leverage points.</li>
+</ul>
+<div class="figure">
+<span style="display:block;" id="fig:acfperiodogram"></span>
+<img src="figures/acfperiodogram.jpg" alt="Autocorrelation function (top) and cumulated periodogram (bottom) of an insufficient model (left) and a sufficient model (right)" width="60%"><p class="caption">
+Figure 2.4: Autocorrelation function (top) and cumulated periodogram (bottom) of an insufficient model (left) and a sufficient model (right)
+</p>
+</div>
+<p>Most importantly, the correlation among the error terms should be checked. The autocorrelation function (ACF) checks the independence of residuals and may reveal lag dependencies which suggest influences that the model does not properly take into account. This is particularly important for time series models, and therefore well explained the time series litterature (<span class="citation">Shumway and Stoffer (<a href="bayesian-calibration.html#ref-shumway2000time" role="doc-biblioref">2000</a>)</span>). Alternatively, the Durbin-Watson test quantitatively checks for autocorrelation in regression models. “If there is correlation among the error terms, then the estimated standard errors will tend to underestimate to true standard errors. As a result, confidence and prediction intervals will be narrower than they should be.”(<span class="citation">James et al. (<a href="bayesian-calibration.html#ref-james2013introduction" role="doc-biblioref">2013</a>)</span>)</p>
+<p>If residuals display unequal variances or correlations, then the inferences and predictions of the fitted model should not be used. The model should be modified and re-trained according to the practitioner’s expertise and diagnostics of the analysis: additional explanatory variables can be included if possible.</p>
+</div>
+</div>
+<div id="bayesian-mv-in-practice" class="section level2" number="2.4">
+<h2>
+<span class="header-section-number">2.4</span> Bayesian M&amp;V in practice<a class="anchor" aria-label="anchor" href="#bayesian-mv-in-practice"><i class="fas fa-link"></i></a>
+</h2>
+<div id="estimating-savings-and-their-uncertainty" class="section level3" number="2.4.1">
+<h3>
+<span class="header-section-number">2.4.1</span> Estimating savings and their uncertainty<a class="anchor" aria-label="anchor" href="#estimating-savings-and-their-uncertainty"><i class="fas fa-link"></i></a>
+</h3>
+<p>The following workflows for M&amp;V can be followed regardless of the chosen type of model (regression model for options A, B and C, or GP emulator for option D). The choice of workflow will mostly depend on the availability of data during the baseline and reporting periods.</p>
+<div class="figure">
+<span style="display:block;" id="fig:workflow3"></span>
+<img src="figures/workflow3.png" alt="Estimation of savings with uncertainty in an avoided consumption workflow. The step of model validation is not displayed." width="100%"><p class="caption">
+Figure 2.5: Estimation of savings with uncertainty in an avoided consumption workflow. The step of model validation is not displayed.
+</p>
+</div>
+<p>Here is a summary of the workflow to estimate savings and their uncertainty, when following the reporting period basis, or avoided energy consumption. We assume that the measurement boundaries have been defined and that data <span class="math inline">\(y_\mathit{base}\)</span> and <span class="math inline">\(y_\mathit{repo}\)</span> have been recorded during the baseline and reporting period respectively.</p>
+<ul>
+<li>As with standard approaches, choose a model structure to describe the data with, and formulate it as a likelihood function. Formulate eventual “expert knowledge” assumptions in the form of prior probability distributions.</li>
+<li>Run a MCMC (or other) algorithm to obtain a set of samples <span class="math inline">\(\left(\theta^{(1)},...,\theta^{(S)}\right)\)</span> which approximates the posterior distribution of parameters conditioned on the baseline data <span class="math inline">\(p\left(\theta | y_\mathit{base}\right)\)</span>. Validate the inference by checking convergence diagnostics: R-hat, ESS, etc.</li>
+<li>Validate the model by computing its predictions during the baseline period <span class="math inline">\(p\left(\tilde{y}_\mathit{base} | y_\mathit{base}\right)\)</span>. This can be done by taking all (or a representative set of) samples <span class="math inline">\(\theta^{(s)}\)</span> individually, and running a model simulation <span class="math inline">\(\tilde{y}_\mathit{base}^{(s)} \sim p\left(y_\mathit{base} | \theta=\theta^{(s)}\right)\)</span> for each. This set of simulations generates the posterior predictive distribution of the baseline period, from which any statistic can be derived (mean, median, prediction intervals for any quantile, etc.). The measures of model validation (R-squared, net determination bias, t-statistic…) can then be computed either from the mean, or from all samples in order to obtain their own probability densities.</li>
+<li>Compute the reporting period predictions in the same discrete way: each sample <span class="math inline">\(\theta^{(s)}\)</span> generates a profile <span class="math inline">\(\tilde{y}_\mathit{repo}^{(s)} \sim p\left(y_\mathit{repo} | \theta=\theta^{(s)}\right)\)</span>, and this set of simulations generates the posterior predictive distribution of the reporting period.</li>
+<li>Since each reporting period prediction <span class="math inline">\(\tilde{y}_\mathit{repo}^{(s)}\)</span> can be compared with the measured reporting period consumption <span class="math inline">\(y_\mathit{repo}\)</span>, we can obtain S values for the energy savings, which distribution approximate the posterior probability of savings.</li>
+</ul>
+<p><span class="math display" id="eq:workflow20">\[\begin{align}
+\Delta e^{(s)} &amp; = \sum_{i=1}^n\left(\tilde{y}_\mathit{repo}^{(s)}(i)-y_\mathit{repo}(i)\right) \tag{2.19} \\
+&amp; \sim p\left(\Delta e | y_\mathit{base}, y_\mathit{repo}\right) \tag{2.20}
+\end{align}\]</span></p>
+<p>In a normalised savings workflow, a numerical model is trained on both the baseline and the reporting period data. Each trained model then predicts the energy consumption during a period of normalised conditions, and savings are estimated by comparing these predictions.</p>
+<ul>
+<li><p>Two posterior distributions should be produced <span class="math inline">\(\left(\theta^{(1)},...,\theta^{(S)}\right)_\mathit{base}\)</span> and <span class="math inline">\(\left(\theta^{(1)},...,\theta^{(S)}\right)_\mathit{repo}\)</span>, in a similar way that a model is trained for each period. The validation metrics of each model should be checked using the posterior predictions of their own training period.</p></li>
+<li><p>Each model computes a set of <span class="math inline">\(S\)</span> posterior predictions during the normalised period, by sampling from its parameter posterior distribution:
+<span class="math display" id="eq:workflow22">\[\begin{align}
+\tilde{y}_{\mathit{norm}|\mathit{base}}^{(s)} \sim p\left(y_\mathit{norm} | \theta=\theta_\mathit{base}^{(s)}\right) \tag{2.21}\\
+\tilde{y}_{\mathit{norm}|\mathit{repo}}^{(s)} \sim p\left(y_\mathit{norm} | \theta=\theta_\mathit{repo}^{(s)}\right)\tag{2.22}
+\end{align}\]</span></p></li>
+<li><p>We can obtain <span class="math inline">\(S\)</span> values of the savings from these <span class="math inline">\(S\)</span> pairs of predictions:
+<span class="math display" id="eq:workflow23">\[\begin{equation}
+\Delta e^{(s)} = \sum_{i=1}^n\left(\tilde{y}_{\mathit{norm}|\mathit{base}}^{(s)}(i) - \tilde{y}_{\mathit{norm}|\mathit{repo}}^{(s)}(i)\right) \tag{2.23}
+\end{equation}\]</span></p></li>
+</ul>
+</div>
+<div id="tools" class="section level3" number="2.4.2">
+<h3>
+<span class="header-section-number">2.4.2</span> Software tools<a class="anchor" aria-label="anchor" href="#tools"><i class="fas fa-link"></i></a>
+</h3>
+<p>The rest of this guide is a series of tutorials so that the reader may see these methods in practice. Unlike classical regression, the modelling part requires stepping out of Excel spreadsheets and using a dedicated computing environment.</p>
+<p>We use the <a href="https://mc-stan.org/">Stan</a> platform for statistical modelling. Its algorithms are accessible through interfaces into most scientific computing languages: Python, R, Julia, Matlab…</p>
+<p>The majority of Stan users seem to favor the R language, hence this choice in our tutorials. As an alternative to full Stan models, <a href="https://mc-stan.org/rstanarm/index.html">rstanarm</a> is an R package for “people who would be open to Bayesian inference if using Bayesian software were easier but would use frequentist software otherwise”</p>
+<p>For Python users, <a href="https://www.pymc.io">PyMC</a> and <a href="http://pyro.ai/">Pyro</a> are popular Bayesian modelling alternatives. Julia users may use <a href="https://github.com/TuringLang/Turing.jl">Turing</a>. The Stan models we propose can still be interfaced with these two languages.</p>
+<p>Additionally, specialised plotting libraries were made for exploratory analysis of Bayesian models. We recommend users to give them a try:</p>
+<ul>
+<li>The <a href="https://mc-stan.org/bayesplot/">bayesplot R package</a> for Stan models;</li>
+<li>The <a href="https://python.arviz.org/en/stable/index.html">ArviZ package for Python and Julia</a>.</li>
+</ul>
+</div>
 </div>
 </div>
 
@@ -142,18 +383,28 @@ The advantage of this methodology is that steps 2 and 3 will always remain the s
 
   <div class="chapter-nav">
 <div class="prev"><a href="back-mv.html"><span class="header-section-number">1</span> Measurement and verification</a></div>
-<div class="next"><a href="optCbasics.html">IPMVP Option C</a></div>
+<div class="next"><a href="optClinreg.html"><span class="header-section-number">3</span> Tutorial 1: linear regression and introduction to Stan</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#back-bayes"><span class="header-section-number">2</span> Bayesian data analysis</a></li>
+<li><a class="nav-link" href="#motivation-for-a-bayesian-mv"><span class="header-section-number">2.1</span> Motivation for a Bayesian M&amp;V</a></li>
+<li><a class="nav-link" href="#bayesian-inference-in-theory"><span class="header-section-number">2.2</span> Bayesian inference in theory</a></li>
 <li>
-<a class="nav-link" href="#back-bayes"><span class="header-section-number">2</span> Bayesian data analysis</a><ul class="nav navbar-nav">
-<li><a class="nav-link" href="#step-1-setting-up-a-model"><span class="header-section-number">2.0.1</span> Step 1: setting up a model</a></li>
-<li><a class="nav-link" href="#step-2-learning"><span class="header-section-number">2.0.2</span> Step 2: learning</a></li>
-<li><a class="nav-link" href="#step-3-prediction-and-inference"><span class="header-section-number">2.0.3</span> Step 3: prediction and inference</a></li>
+<a class="nav-link" href="#a-bayesian-data-analysis-workflow"><span class="header-section-number">2.3</span> A Bayesian data analysis workflow</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#overview"><span class="header-section-number">2.3.1</span> Overview</a></li>
+<li><a class="nav-link" href="#step-1-model-specification"><span class="header-section-number">2.3.2</span> Step 1: model specification</a></li>
+<li><a class="nav-link" href="#priorpredictivechecking"><span class="header-section-number">2.3.3</span> Prior predictive checking</a></li>
+<li><a class="nav-link" href="#computation"><span class="header-section-number">2.3.4</span> Step 2: computation with Markov Chain Monte Carlo</a></li>
+<li><a class="nav-link" href="#modelvalidation"><span class="header-section-number">2.3.5</span> Step 3: model checking and validation</a></li>
 </ul>
 </li>
-<li><a class="nav-link" href="#stan"><span class="header-section-number">2.1</span> Stan</a></li>
+<li>
+<a class="nav-link" href="#bayesian-mv-in-practice"><span class="header-section-number">2.4</span> Bayesian M&amp;V in practice</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#estimating-savings-and-their-uncertainty"><span class="header-section-number">2.4.1</span> Estimating savings and their uncertainty</a></li>
+<li><a class="nav-link" href="#tools"><span class="header-section-number">2.4.2</span> Software tools</a></li>
+</ul>
+</li>
 </ul>
 
       <div class="book-extra">

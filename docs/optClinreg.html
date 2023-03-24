@@ -6,20 +6,42 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Chapter 3 Tutorial 1: linear regression and introduction to Stan | Bayesian Measurement and Verification</title>
 <meta name="author" content="Simon Rouchier">
-<meta name="description" content="This first tutorial uses the most simple model, ordinary linear regression, to show that the Bayesian method returns the same results (energy use predictions, savings, and their uncertainty) as...">
+<meta name="description" content="This first tutorial serves as an introduction to the Stan platform, and shows that Bayesian analysis obtains the same uncertainty assessments as classical methods, when analytical solutions are...">
 <meta name="generator" content="bookdown 0.26 with bs4_book()">
 <meta property="og:title" content="Chapter 3 Tutorial 1: linear regression and introduction to Stan | Bayesian Measurement and Verification">
 <meta property="og:type" content="book">
-<meta property="og:description" content="This first tutorial uses the most simple model, ordinary linear regression, to show that the Bayesian method returns the same results (energy use predictions, savings, and their uncertainty) as...">
+<meta property="og:description" content="This first tutorial serves as an introduction to the Stan platform, and shows that Bayesian analysis obtains the same uncertainty assessments as classical methods, when analytical solutions are...">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Chapter 3 Tutorial 1: linear regression and introduction to Stan | Bayesian Measurement and Verification">
-<meta name="twitter:description" content="This first tutorial uses the most simple model, ordinary linear regression, to show that the Bayesian method returns the same results (energy use predictions, savings, and their uncertainty) as...">
+<meta name="twitter:description" content="This first tutorial serves as an introduction to the Stan platform, and shows that Bayesian analysis obtains the same uncertainty assessments as classical methods, when analytical solutions are...">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
 <script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
 <script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
     
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<style type="text/css">
+    /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+        }
+    .hanging div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }
   </style>
 </head>
 <body data-spy="scroll" data-target="#toc">
@@ -46,8 +68,7 @@
 <li class="book-part">Background</li>
 <li><a class="" href="back-mv.html"><span class="header-section-number">1</span> Measurement and verification</a></li>
 <li><a class="" href="back-bayes.html"><span class="header-section-number">2</span> Bayesian data analysis</a></li>
-<li class="book-part">Whole building M&amp;V</li>
-<li><a class="" href="optCbasics.html">IPMVP Option C</a></li>
+<li class="book-part">Whole building M&amp;V: option C</li>
 <li><a class="active" href="optClinreg.html"><span class="header-section-number">3</span> Tutorial 1: linear regression and introduction to Stan</a></li>
 <li><a class="" href="optCchangepoint.html"><span class="header-section-number">4</span> Tutorial 2: change-point model</a></li>
 <li><a class="" href="optCautocorr.html"><span class="header-section-number">5</span> Tutorial 3: autocorrelation</a></li>
@@ -65,18 +86,16 @@
 <h1>
 <span class="header-section-number">3</span> Tutorial 1: linear regression and introduction to Stan<a class="anchor" aria-label="anchor" href="#optClinreg"><i class="fas fa-link"></i></a>
 </h1>
-<p>This first tutorial uses the most simple model, ordinary linear regression, to show that the Bayesian method returns the same results (energy use predictions, savings, and their uncertainty) as the analytical method. As a bonus, this is also a tutorial to Stan.</p>
-<ul>
-<li>introduction to Stan</li>
-<li>comparison with the classical analysis</li>
-</ul>
-<p>Imports</p>
+<p>This first tutorial serves as an introduction to the Stan platform, and shows that Bayesian analysis obtains the same uncertainty assessments as classical methods, when analytical solutions are available.</p>
+<p>For this purpose, we use a very short dataset and an ordinary linear regression model.</p>
+<div id="data" class="section level2" number="3.1">
+<h2>
+<span class="header-section-number">3.1</span> Data<a class="anchor" aria-label="anchor" href="#data"><i class="fas fa-link"></i></a>
+</h2>
+<p>The data are monthly measurements of whole-facility energy use (kWh), as well as heating degree-days and cooling degree-days (°C.day).</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://mc-stan.org/rstan/">rstan</a></span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></code></pre></div>
-<p>The data</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># setwd("...") #Set this to path of "cddhddmod.stan"</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span>
 
 <span class="co"># Baseline data: cooling and heating degree days, energy use</span>
 <span class="va">df.pre</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>cdd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span>, <span class="fl">15</span>, <span class="fl">21</span>, <span class="fl">21</span>, <span class="fl">14</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>,
@@ -87,22 +106,48 @@
 <span class="va">df.post</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>cdd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">3</span>, <span class="fl">13</span>, <span class="fl">23</span>, <span class="fl">19</span>, <span class="fl">16</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>,
                       hdd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">19</span>, <span class="fl">20</span>, <span class="fl">24</span>, <span class="fl">25</span>, <span class="fl">14</span><span class="op">)</span>,
                       use <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">25416</span>, <span class="fl">17445</span>, <span class="fl">13626</span>, <span class="fl">19295</span>, <span class="fl">17970</span>, <span class="fl">15158</span>,
-                              <span class="fl">13293</span>, <span class="fl">35297</span>, <span class="fl">35665</span>, <span class="fl">38562</span>, <span class="fl">33383</span>, <span class="fl">37244</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<div id="modelling" class="section level2" number="3.1">
+                              <span class="fl">13293</span>, <span class="fl">35297</span>, <span class="fl">35665</span>, <span class="fl">38562</span>, <span class="fl">33383</span>, <span class="fl">37244</span><span class="op">)</span><span class="op">)</span>
+
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">df.pre</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">hdd</span>, y<span class="op">=</span><span class="va">use</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div class="inline-figure"><img src="bayesmv_files/figure-html/unnamed-chunk-1-1.png" width="672"></div>
+</div>
+<div id="model-specification-first-look-at-a-stan-model" class="section level2" number="3.2">
 <h2>
-<span class="header-section-number">3.1</span> Modelling<a class="anchor" aria-label="anchor" href="#modelling"><i class="fas fa-link"></i></a>
+<span class="header-section-number">3.2</span> Model specification: first look at a Stan model<a class="anchor" aria-label="anchor" href="#model-specification-first-look-at-a-stan-model"><i class="fas fa-link"></i></a>
 </h2>
-<p>equation</p>
-<p>stan model</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">model</span> <span class="op">&lt;-</span> <span class="st">"
+<div id="ordinary-linear-regression" class="section level3" number="3.2.1">
+<h3>
+<span class="header-section-number">3.2.1</span> Ordinary linear regression<a class="anchor" aria-label="anchor" href="#ordinary-linear-regression"><i class="fas fa-link"></i></a>
+</h3>
+<p>After a quick look at the data, we can assume a linear relationship between the dependent variable (energy use) and both explanatory variables (hdd and cdd).</p>
+<p>I wrote a longer lecture on ordinary linear regression <a href="https://buildingenergygeeks.org/ordinary-linear-regression.html#introduction-to-olr">here</a>. We don’t differentiate between simple and multiple regression, i.e. models with one or several explanatory variable, since they are solved the same way.</p>
+<p>We consider a dependent variable <span class="math inline">\(y\)</span>, and a set of <span class="math inline">\(k\)</span> explanatory (independent) variables <span class="math inline">\(x=(x_1,...,x_k)\)</span>, and assume that a series of <span class="math inline">\(n\)</span> values of each have been measured. We therefore have a vector <span class="math inline">\(\mathbf{y}=\left\{y_i\right\}_{i=1}^n\)</span> and a matrix <span class="math inline">\(X = \left\{x_{i1},...x_{ik}\right\}_{i=1}^n\)</span> of dependent and independent variable measurements.</p>
+<p>The <em>ordinary</em> linear regression model states that the distribution of each <span class="math inline">\(y_i\)</span> given the predictors <span class="math inline">\(\mathbf{X}_i\)</span> is normal with a mean that is a linear function:
+<span class="math display" id="eq:linreg2">\[\begin{align}
+    y_i &amp; = \alpha + \beta_1 x_{i1} + ... + \beta_k x_{ik} + \varepsilon_i  \tag{3.1} \\
+  \varepsilon_i &amp; \sim \mathrm{normal}(0, \sigma) \tag{3.2}
+\end{align}\]</span>
+or in matrix form:
+<span class="math display" id="eq:linreg3">\[\begin{equation}
+    \mathbf{y} = \alpha + \mathbf{X} \cdot \mathbf{\beta} + \mathbf{\varepsilon}    \tag{3.3}
+\end{equation}\]</span>
+The parameters <span class="math inline">\((\alpha, \beta_1, ..., \beta_k, \sigma)\)</span> are a vector of coefficients to be determined. Ordinary linear regression assumes a normal linear model in which observation errors <span class="math inline">\(\varepsilon_i\)</span> are independent and have equal variance <span class="math inline">\(\sigma^2\)</span> (hypothesis of homoscedasticity).</p>
+</div>
+<div id="linear-regression-with-stan" class="section level3" number="3.2.2">
+<h3>
+<span class="header-section-number">3.2.2</span> Linear regression with Stan<a class="anchor" aria-label="anchor" href="#linear-regression-with-stan"><i class="fas fa-link"></i></a>
+</h3>
+<p>Linear regression is naturally the first example given in the <a href="https://mc-stan.org/docs/stan-users-guide/linear-regression.html">Stan documentation</a>. The following model has been extended a bit for the purpose of our study.</p>
+<p>A Stan model can be either written in a separate file, or included into your R script (or other language) as follows:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">linearregression</span> <span class="op">&lt;-</span> <span class="st">"
 data {
-// Baseline data
+// Baseline data (pre)
   int&lt;lower=0&gt; N;     // number of data items
   int&lt;lower=0&gt; K;     // number of predictors
   matrix[N, K] x;     // predictor matrix
   vector[N] y;        // outcome vector
-// Reporting period data
+// Reporting period data (post)
   int&lt;lower=0&gt; N_post;  // number of data items
   matrix[N, K] x_post;     // predictor matrix
   vector[N] y_post;        // outcome vector
@@ -113,7 +158,7 @@ parameters {
   real&lt;lower=0&gt; sigma;  // error scale
  }
 model {
-  y ~ normal(x * beta + alpha, sigma);  // likelihood
+  y ~ normal(alpha + x * beta, sigma);  // likelihood
 }
 generated quantities {
   vector[N_post] prediction;
@@ -124,18 +169,38 @@ generated quantities {
   }
 }
 "</span></code></pre></div>
-<p>explanation on the blocs:</p>
+<p>The code is made of several blocks delimited by braces. There are <a href="https://mc-stan.org/docs/reference-manual/overview-of-stans-program-blocks.html">up to seven</a> types of blocks in a Stan model, but we only used four here. Their order is important in the code, but we describe them here in another order:</p>
 <ul>
-<li>data</li>
-<li>parameters</li>
-<li>model y ~ normal(x * beta + alpha, sigma);</li>
-<li>generated quantities</li>
+<li>The <code>model</code> block is the center of the Stan code. This is where we declare the model that relates the dependent variable <span class="math inline">\(y\)</span> (energy use) to the explanatory variables <span class="math inline">\(x\)</span> (heating and cooling degree-days):</li>
 </ul>
-<p>The last block <code>generated quantities</code> is optional.</p>
-<div id="model-training" class="section level3" number="3.1.1">
+<pre><code>model {
+  y ~ normal(alpha + x * beta, sigma);
+}</code></pre>
+<p>This line states that we expect <span class="math inline">\(y\)</span> to be normally distributed around the linear function <span class="math inline">\(\alpha + \mathbf{X} \cdot \mathbf{\beta}\)</span>, with standard deviation <span class="math inline">\(\sigma\)</span>. It is identical to Eq. <a href="optClinreg.html#eq:linreg3">(3.3)</a>.</p>
+<ul>
+<li>The <code>data</code> block contains the definition of the data to be passed to the model. The variables declared in this block are the arguments that the model will use: the vector <span class="math inline">\(\mathbf{y}\)</span> and matrix <span class="math inline">\(\mathbf{X}\)</span> for each of the “pre” and “post” periods. The number of data items is also a requirement, since it is used as a variable by the Stan model.</li>
+<li>The <code>parameters</code> block declares the variables that will be learned by model training: the intercept <span class="math inline">\(\alpha\)</span>, the slopes <span class="math inline">\(\beta\)</span> and the noise scale <span class="math inline">\(\sigma\)</span>.</li>
+<li>The <code>generated quantities</code> block is optional and does not influence model training. It is used to evaluate any function of the parameters <span class="math inline">\(f(\theta)\)</span> at every sample, so that we may directly obtain its posterior distribution <span class="math inline">\(p(f(\theta)|y)\)</span> (see Eq. <a href="back-bayes.html#eq:workflow11">(2.11)</a>). Two variables are computed here:
+<ul>
+<li>
+<code>prediction</code> is the model’s prediction of energy use during the post-ECM period. It uses the parameter models <span class="math inline">\((\alpha, \beta, \sigma)\)</span> learned with pre-retrofit data, and the post-retrofit matrix of dependent variables <span class="math inline">\(\mathbf{X}\)</span>.</li>
+<li>
+<code>savings</code> is the total difference between measured and predicted post-retrofit energy use.
+By including these two variables in the <code>generated quantities</code> block.</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="model-fit-and-inference-diagnostics" class="section level2" number="3.3">
+<h2>
+<span class="header-section-number">3.3</span> Model fit and inference diagnostics<a class="anchor" aria-label="anchor" href="#model-fit-and-inference-diagnostics"><i class="fas fa-link"></i></a>
+</h2>
+<div id="sampling-from-the-posterior" class="section level3" number="3.3.1">
 <h3>
-<span class="header-section-number">3.1.1</span> Model training<a class="anchor" aria-label="anchor" href="#model-training"><i class="fas fa-link"></i></a>
+<span class="header-section-number">3.3.1</span> Sampling from the posterior<a class="anchor" aria-label="anchor" href="#sampling-from-the-posterior"><i class="fas fa-link"></i></a>
 </h3>
+<p>The next step is to map the data contained in the <code>df.pre</code> and <code>df.post</code> dataframes to the Stan model. We do this by defining a list of variables that should match all items defined in the <code>data</code> block:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">data_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>N <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df.pre</span><span class="op">)</span>,
                   K <span class="op">=</span> <span class="fl">2</span>,
@@ -143,52 +208,189 @@ generated quantities {
                   y <span class="op">=</span> <span class="va">df.pre</span><span class="op">$</span><span class="va">use</span>,
                   N_post <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df.post</span><span class="op">)</span>,
                   x_post <span class="op">=</span> <span class="va">df.post</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">cdd</span>, <span class="va">hdd</span><span class="op">)</span>,
-                  y_post <span class="op">=</span> <span class="va">df.post</span><span class="op">$</span><span class="va">use</span><span class="op">)</span>
-
-<span class="va">fit1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/rstan/reference/stan.html">stan</a></span><span class="op">(</span>model_code <span class="op">=</span> <span class="va">model</span>, data <span class="op">=</span> <span class="va">data_list</span>, refresh <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>
-
-<span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">fit1</span>, pars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"alpha"</span>, <span class="st">"beta"</span>, <span class="st">"sigma"</span>, <span class="st">"savings"</span><span class="op">)</span>, probs<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.025</span>,<span class="fl">.5</span>,<span class="fl">.975</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<pre><code>## Inference for Stan model: 518e88093c164eed938c981d4795b52f.
-## 4 chains, each with iter=2000; warmup=1000; thin=1; 
-## post-warmup draws per chain=1000, total post-warmup draws=4000.
+                  y_post <span class="op">=</span> <span class="va">df.post</span><span class="op">$</span><span class="va">use</span><span class="op">)</span></code></pre></div>
+<p>The first column of the <span class="math inline">\(\mathbf{X}\)</span> matrix are the cooling degree-days, and the second column are the heating degree-days.</p>
+<p>We can now get a fit with the following command. The important arguments are:</p>
+<ul>
+<li>
+<code>model_code</code> points to the Stan code. If you chose to write the R code in a separate file, for instance called <code>linearregression.stan</code>, you may replace the line <code>model_code = linearregression</code> with <code>file = 'linearregression.stan'</code> (by pointing to the appropriate location of the file).</li>
+<li>
+<code>data</code> points to the list of variables that we just defines.</li>
+<li>
+<code>chains</code> should be at least 4.</li>
+<li>
+<code>iter</code> is the number of iterations per chain.</li>
+<li>
+<code>warmup</code> is the number of discarded iterations at the start of every chain.
+Default values are <code>chains = 4</code>, <code>warmup = 1000</code> and <code>iter = 2000</code>, which will result in <code>chains*(iter-warmup)=4000</code> samples. This appeared slightly insufficient in our case because of the very small dataset, so we raised <code>iter</code>.</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/rstan/reference/stan.html">stan</a></span><span class="op">(</span>
+  model_code <span class="op">=</span> <span class="va">linearregression</span>,  <span class="co"># Stan program</span>
+  data <span class="op">=</span> <span class="va">data_list</span>,        <span class="co"># named list of data</span>
+  chains <span class="op">=</span> <span class="fl">4</span>,               <span class="co"># number of Markov chains</span>
+  warmup <span class="op">=</span> <span class="fl">1000</span>,            <span class="co"># number of warmup iterations per chain</span>
+  iter <span class="op">=</span> <span class="fl">3000</span>,              <span class="co"># total number of iterations per chain</span>
+  cores <span class="op">=</span> <span class="fl">2</span>,                <span class="co"># number of cores (could use one per chain)</span>
+  refresh <span class="op">=</span> <span class="fl">0</span>,              <span class="co"># progress not shown</span>
+<span class="op">)</span></code></pre></div>
+<p>Model fitting takes longer the first time the <code><a href="https://mc-stan.org/rstan/reference/stan.html">stan()</a></code> command is run, because the model must first be compiled. This compilation is however only required once per model, which means running it again with new data is faster.</p>
+</div>
+<div id="results" class="section level3" number="3.3.2">
+<h3>
+<span class="header-section-number">3.3.2</span> Results<a class="anchor" aria-label="anchor" href="#results"><i class="fas fa-link"></i></a>
+</h3>
+<p>The <code>fit</code> object returned by <code>stan</code> is associated with methods such as <code>print</code>, <code>plot</code> and <code>pairs</code>, letting us have a first look at our results.
+* The <code>print</code> method shows some posterior metrics of the parameters and generated quantities: mean, standard deviation, quantiles, effective sample size, R-hat.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">fit</span>, pars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"alpha"</span>, <span class="st">"beta"</span>, <span class="st">"sigma"</span>, <span class="st">"savings"</span><span class="op">)</span>, probs<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.025</span>,<span class="fl">.5</span>,<span class="fl">.975</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<pre><code>## Inference for Stan model: 08fcb401f6af5c61fc0cf0e3fcc190e3.
+## 4 chains, each with iter=3000; warmup=1000; thin=1; 
+## post-warmup draws per chain=2000, total post-warmup draws=8000.
 ## 
 ##             mean se_mean       sd     2.5%      50%     97.5% n_eff Rhat
-## alpha   22816.62   74.70  2530.15 17813.11 22838.03  27791.20  1147    1
-## beta[1]   117.15    4.87   168.98  -217.76   116.54    446.14  1204    1
-## beta[2]   874.67    3.59   124.37   633.33   872.67   1131.50  1198    1
-## sigma    3096.13   24.75   871.05  1923.38  2943.78   5216.65  1239    1
-## savings 75604.20  277.61 16176.65 44126.99 75402.61 108854.37  3396    1
+## alpha   22865.24   55.41  2530.45 17887.63 22842.59  27940.48  2086    1
+## beta[1]   114.42    3.59   170.05  -234.15   115.38    448.06  2245    1
+## beta[2]   872.00    2.70   124.09   620.86   872.88   1123.90  2116    1
+## sigma    3126.08   19.66   923.05  1928.18  2946.97   5376.23  2204    1
+## savings 75719.34  202.56 16209.73 43451.18 75701.18 107866.26  6404    1
 ## 
-## Samples were drawn using NUTS(diag_e) at Tue Feb 21 11:00:06 2023.
+## Samples were drawn using NUTS(diag_e) at Fri Mar 24 13:35:02 2023.
 ## For each parameter, n_eff is a crude measure of effective sample size,
 ## and Rhat is the potential scale reduction factor on split chains (at 
 ## convergence, Rhat=1).</code></pre>
-<p>link to all the options of the stan() method. This works for now but we’ll use more options in a later tutorial
-default : 4 chains, 2000 samples per chain, 1000 warmup. In case of convergence issues, increasing samples and warmup is one of the first things to try.</p>
+<ul>
+<li>
+<code>traceplot</code> shows the traces of the selected parameters and variables. If the fitting has converged, all traces should coincide and approximate posterior distributions.</li>
+</ul>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-traceplot.html">traceplot</a></span><span class="op">(</span><span class="va">fit</span>, pars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"alpha"</span>, <span class="st">"beta"</span>, <span class="st">"sigma"</span>, <span class="st">"savings"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div class="inline-figure"><img src="bayesmv_files/figure-html/unnamed-chunk-6-1.png" width="672"></div>
+<ul>
+<li>
+<code>pairs</code> shows the pairwise relationships between parameters. Strong interactions between some parameters are an indication that the model should be re-parameterised.</li>
+</ul>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/pairs.html">pairs</a></span><span class="op">(</span><span class="va">fit</span>, pars<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"alpha"</span>, <span class="st">"beta"</span>, <span class="st">"sigma"</span>, <span class="st">"savings"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div class="inline-figure"><img src="bayesmv_files/figure-html/unnamed-chunk-7-1.png" width="672"></div>
 </div>
-<div id="convergence-diagnostics" class="section level3" number="3.1.2">
+<div id="inference-diagnostics" class="section level3" number="3.3.3">
 <h3>
-<span class="header-section-number">3.1.2</span> Convergence diagnostics<a class="anchor" aria-label="anchor" href="#convergence-diagnostics"><i class="fas fa-link"></i></a>
+<span class="header-section-number">3.3.3</span> Inference diagnostics<a class="anchor" aria-label="anchor" href="#inference-diagnostics"><i class="fas fa-link"></i></a>
 </h3>
+<p>Running the <code><a href="https://mc-stan.org/rstan/reference/stan.html">stan()</a></code> command may return a variety of warnings <a href="https://mc-stan.org/misc/warnings.html">to help users diagnose and resolve underlying modelling problems</a>.</p>
+<p>In order to draw reliable inferences from our results, we need at least a few green lights:</p>
+<ul>
+<li>High enough effective sample size (ESS) for all parameters (seen on the table shown by <code>print</code>);</li>
+<li>R-hat lower than 1.01, to ensure that chains have converged;</li>
+<li>No remaining warnings about BFMI (Bayesian fraction of missing information), divergent transitions or maximum treedepth.</li>
+</ul>
+<p>Some of these criteria may seem obscure to new users of Bayesian computation, but they should not be ignored. <a href="https://mc-stan.org/misc/warnings.html">This guide</a> suggests ways to solve problems. This is part of <a href="https://arxiv.org/abs/2011.01808">a larger workflow of model building, testing and critique/evaluation</a>.</p>
+<ul>
+<li>The first thing to try when traces have not converged is to increase warmup and iterations. This may be enough to get better ESS and R-hat</li>
+<li>There are some possible “hidden” adjustments to the MCMC algorithm to solve some warnings (<a href="http://singmann.org/hierarchical-mpt-in-stan-i-dealing-with-convergent-transitions-via-control-arguments/">see this example</a>)</li>
+</ul>
+<pre><code>fit &lt;- stan(...
+            control = list(adapt_delta = 0.99, stepsize = 0.01, max_treedepth = 15)
+)</code></pre>
+<ul>
+<li>If problems remain, it might be a sign of model inadequacy. The solution is then to reduce the model and use stronger priors, as the data may not be sufficient to inform all parameters.</li>
+</ul>
+<p>Diagnostics may be facilitated by the use of specialised plotting libraries made for exploratory analysis of Bayesian models:</p>
+<ul>
+<li>The <a href="https://mc-stan.org/bayesplot/">bayesplot R package</a>
+</li>
+<li>The <a href="https://python.arviz.org/en/stable/index.html">ArviZ package for Python and Julia</a> has methods dedicated to <a href="https://python.arviz.org/en/stable/examples/index.html#inference-diagnostics">inference diagnostics</a>
+</li>
+</ul>
 </div>
 </div>
-<div id="validation" class="section level2" number="3.2">
+<div id="model-checking-and-validation" class="section level2" number="3.4">
 <h2>
-<span class="header-section-number">3.2</span> Validation<a class="anchor" aria-label="anchor" href="#validation"><i class="fas fa-link"></i></a>
+<span class="header-section-number">3.4</span> Model checking and validation<a class="anchor" aria-label="anchor" href="#model-checking-and-validation"><i class="fas fa-link"></i></a>
 </h2>
-<p>Validation steps are the same as in the classical analysis</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">la</span> <span class="op">&lt;-</span> <span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html">extract</a></span><span class="op">(</span><span class="va">fit1</span>, permuted <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
-<span class="va">residuals</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html">colMeans</a></span><span class="op">(</span><span class="va">la</span><span class="op">$</span><span class="va">prediction</span><span class="op">)</span> <span class="op">-</span> <span class="va">df.pre</span><span class="op">$</span><span class="va">use</span>
-<span class="fu"><a href="https://rdrr.io/r/stats/acf.html">acf</a></span><span class="op">(</span><span class="va">residuals</span><span class="op">)</span></code></pre></div>
-<div class="inline-figure"><img src="bayesmv_files/figure-html/unnamed-chunk-5-1.png" width="672"></div>
+<div id="measures-of-model-adequacy" class="section level3" number="3.4.1">
+<h3>
+<span class="header-section-number">3.4.1</span> Measures of model adequacy<a class="anchor" aria-label="anchor" href="#measures-of-model-adequacy"><i class="fas fa-link"></i></a>
+</h3>
+<p>MCMC convergence is necessary, but does not guarantee that our model is the best choice for our case! Assessing the adequacy of the fitted model is just as necessary in a Bayesian framework as with classical frequentist methods.</p>
+<p>The <code>extract</code> function returns model parameters and generated quantities into a named list.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">la</span> <span class="op">&lt;-</span> <span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html">extract</a></span><span class="op">(</span><span class="va">fit</span>, permuted <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">la</span><span class="op">$</span><span class="va">savings</span><span class="op">)</span></code></pre></div>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##  -44706   65591   75701   75719   85880  159172</code></pre>
+<p>For instance <code>la$alpha</code> and <code>la$savings</code> hold the value of the parameter <span class="math inline">\(\alpha\)</span> and the estimated savings for each of our many samples (in the example above, we have <span class="math inline">\(N_s=8000\)</span> samples). Similarly, <code>la$prediction</code> is a <span class="math inline">\(N_s\times 12\)</span> matrix because we have <span class="math inline">\(N_s\)</span> samples of each predicted energy use.</p>
+<p>Here is a way to summarise posterior predictions into only a few quantiles:</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># median, lower and upper bounds of the 95% prediction intervals</span>
+<span class="va">predict</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="va">la</span><span class="op">$</span><span class="va">prediction</span>, <span class="fl">2</span>, <span class="va">quantile</span>, probs<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.025</span>, <span class="fl">0.5</span>, <span class="fl">0.975</span><span class="op">)</span><span class="op">)</span>
+<span class="co"># mean prediction</span>
+<span class="va">predict.mean</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html">colMeans</a></span><span class="op">(</span><span class="va">la</span><span class="op">$</span><span class="va">prediction</span><span class="op">)</span>
+
+<span class="co"># Plot of the median and 95% prediction intervals</span>
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html">array</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df.pre</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span>mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">df.pre</span><span class="op">$</span><span class="va">use</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">predict</span><span class="op">[</span><span class="fl">2</span>,<span class="op">]</span><span class="op">)</span>, color<span class="op">=</span><span class="st">'red'</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html">geom_ribbon</a></span><span class="op">(</span>mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>ymin<span class="op">=</span><span class="va">predict</span><span class="op">[</span><span class="fl">1</span>,<span class="op">]</span>, ymax<span class="op">=</span><span class="va">predict</span><span class="op">[</span><span class="fl">3</span>,<span class="op">]</span><span class="op">)</span>, fill<span class="op">=</span><span class="st">'red'</span>, alpha<span class="op">=</span><span class="fl">0.1</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Month"</span>, y<span class="op">=</span><span class="st">"Energy use (kWh)"</span><span class="op">)</span></code></pre></div>
+<div class="inline-figure"><img src="bayesmv_files/figure-html/unnamed-chunk-9-1.png" width="672"></div>
+<p>We can calculate the usual metrics with the mean posterior prediction: coefficient of determination <span class="math inline">\(R^2\)</span>, CV(RMSE), F-statistic…</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">residuals</span> <span class="op">&lt;-</span> <span class="va">predict.mean</span> <span class="op">-</span> <span class="va">df.pre</span><span class="op">$</span><span class="va">use</span>        <span class="co"># residuals</span>
+<span class="va">ssres</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">residuals</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span>                     <span class="co"># sum of squared residuals</span>
+<span class="va">sstot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="op">(</span><span class="va">df.pre</span><span class="op">$</span><span class="va">use</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">df.pre</span><span class="op">$</span><span class="va">use</span><span class="op">)</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="co"># total sum of squares</span>
+
+<span class="va">R2</span> <span class="op">&lt;-</span> <span class="fl">1</span> <span class="op">-</span> <span class="va">ssres</span> <span class="op">/</span> <span class="va">sstot</span>   <span class="co"># coefficient of determination</span>
+<span class="va">CVRMSE</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">sqrt</a></span><span class="op">(</span><span class="va">ssres</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df.pre</span><span class="op">)</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">df.pre</span><span class="op">$</span><span class="va">use</span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="st">"R2 ="</span>, <span class="va">R2</span><span class="op">)</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="st">"CV(RMSE) ="</span>, <span class="va">CVRMSE</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<pre><code>## [1] "R2 = 0.807417272332704"
+## [1] "CV(RMSE) = 0.127133738673795"</code></pre>
+<p>Prediction residuals should have low autocorrelation. This can be checked by the Durbin-Watson statistic, or with an autocorrelation plot:</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/stats/acf.html">acf</a></span><span class="op">(</span><span class="va">residuals</span><span class="op">)</span></code></pre></div>
+<div class="inline-figure"><img src="bayesmv_files/figure-html/unnamed-chunk-11-1.png" width="672"></div>
+<p>Our simple linear model has low autocorrelation of residuals, but the <span class="math inline">\(R^2\)</span> index is quite low: a significant part of the data’s variance is unexplained.</p>
 </div>
-<div id="prediction-of-savings" class="section level2" number="3.3">
+<div id="checking-model-parameters" class="section level3" number="3.4.2">
+<h3>
+<span class="header-section-number">3.4.2</span> Checking model parameters<a class="anchor" aria-label="anchor" href="#checking-model-parameters"><i class="fas fa-link"></i></a>
+</h3>
+<p>Individual parameter adequacy can be checked with the <span class="math inline">\(t\)</span>-statistic or the <span class="math inline">\(p\)</span>-value.</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># Trace of all parameters and generated quantities</span>
+<span class="va">traces</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>
+<span class="co"># Only the parameters</span>
+<span class="va">traces.p</span> <span class="op">&lt;-</span> <span class="va">traces</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="st">'alpha'</span>, <span class="st">'beta[1]'</span>, <span class="st">'beta[2]'</span>, <span class="st">'sigma'</span><span class="op">)</span>
+
+<span class="co"># The t-statistic is the ratio of mean to standard deviation of parameters</span>
+<span class="va">t_stat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html">colMeans</a></span><span class="op">(</span><span class="va">traces.p</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">traces.p</span>, <span class="va">sd</span><span class="op">)</span>
+<span class="co"># The p-value is easy to calculate from the t statistics</span>
+<span class="va">ptest</span> <span class="op">&lt;-</span> <span class="fl">2</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">pt</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">t_stat</span><span class="op">)</span>, df<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df.pre</span><span class="op">)</span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">ptest</span><span class="op">)</span></code></pre></div>
+<pre><code>##        alpha      beta[1]      beta[2]        sigma 
+## 1.058439e-06 5.137977e-01 1.381006e-05 5.401048e-03</code></pre>
+<p>We can see that one <span class="math inline">\(p\)</span>-value is over 0.05: <code>beta[1]</code> which is the regression coefficient of cooling degree-days.</p>
+<p>The pairwise correlation of parameters is already visible on the <code>pairplot</code> shown earlier. There is a high correlation between them, which we can confirm quantitatively:</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span><span class="op">(</span><span class="va">traces.p</span><span class="op">)</span></code></pre></div>
+<pre><code>##               alpha     beta[1]     beta[2]       sigma
+## alpha    1.00000000 -0.85153006 -0.88297395  0.01072059
+## beta[1] -0.85153006  1.00000000  0.74474306 -0.03438873
+## beta[2] -0.88297395  0.74474306  1.00000000 -0.01472333
+## sigma    0.01072059 -0.03438873 -0.01472333  1.00000000</code></pre>
+</div>
+</div>
+<div id="prediction-of-savings" class="section level2" number="3.5">
 <h2>
-<span class="header-section-number">3.3</span> Prediction of savings<a class="anchor" aria-label="anchor" href="#prediction-of-savings"><i class="fas fa-link"></i></a>
+<span class="header-section-number">3.5</span> Prediction of savings<a class="anchor" aria-label="anchor" href="#prediction-of-savings"><i class="fas fa-link"></i></a>
 </h2>
-<p>Comparison with classical analysis</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<p>We are only partially reassured on the adequacy of our model: the <span class="math inline">\(R^2\)</span> is not very high, one parameter may not be statistically significant, and parameters are quite correlated. The autocorrelation criterion is however satisfactory: this means that we may obtain unbiased estimates of energy savings, but they will probably have a high uncertainty.</p>
+<p>Let’s fit a regular deterministic linear model, in order to compare its results with our Bayesian method:</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">use</span> <span class="op">~</span> <span class="va">cdd</span> <span class="op">+</span> <span class="va">hdd</span>, <span class="va">df.pre</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">fit2</span><span class="op">)</span></code></pre></div>
 <pre><code>## 
@@ -210,57 +412,76 @@ default : 4 chains, 2000 samples per chain, 1000 warmup. In case of convergence 
 ## Residual standard error: 2681 on 9 degrees of freedom
 ## Multiple R-squared:  0.9421, Adjusted R-squared:  0.9292 
 ## F-statistic: 73.24 on 2 and 9 DF,  p-value: 2.702e-06</code></pre>
-<p>point by point</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">predict.1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="va">la</span><span class="op">$</span><span class="va">prediction</span>, <span class="fl">2</span>, <span class="va">quantile</span>, probs<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.025</span>, <span class="fl">0.5</span>, <span class="fl">0.975</span><span class="op">)</span><span class="op">)</span>
-
-<span class="va">predict.2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">fit2</span>, newdata <span class="op">=</span> <span class="va">df.post</span>, interval <span class="op">=</span> <span class="st">"prediction"</span>, level<span class="op">=</span><span class="fl">0.95</span><span class="op">)</span>
+<p>Yes, it is that simple.</p>
+<p>The coefficients are the same as the Bayesian output. Without doing any model checking, we can expect the same conclusions.</p>
+<p>Let’s now compare energy use predictions during the post-retrofit period, with the Bayesian method (in red) and the classical method (in blue):</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">predict.2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">fit2</span>, newdata <span class="op">=</span> <span class="va">df.post</span>, interval <span class="op">=</span> <span class="st">"prediction"</span>, level<span class="op">=</span><span class="fl">0.95</span><span class="op">)</span>
 
 <span class="va">xplot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html">array</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df.post</span><span class="op">)</span><span class="op">)</span>
 <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">xplot</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span>mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">df.post</span><span class="op">$</span><span class="va">use</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">predict.1</span><span class="op">[</span><span class="fl">2</span>,<span class="op">]</span><span class="op">)</span>, color<span class="op">=</span><span class="st">'red'</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">predict</span><span class="op">[</span><span class="fl">2</span>,<span class="op">]</span><span class="op">)</span>, color<span class="op">=</span><span class="st">'red'</span><span class="op">)</span> <span class="op">+</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">predict.2</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span><span class="op">)</span>, color<span class="op">=</span><span class="st">'blue'</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html">geom_ribbon</a></span><span class="op">(</span>mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>ymin<span class="op">=</span><span class="va">predict.1</span><span class="op">[</span><span class="fl">1</span>,<span class="op">]</span>, ymax<span class="op">=</span><span class="va">predict.1</span><span class="op">[</span><span class="fl">3</span>,<span class="op">]</span><span class="op">)</span>, fill<span class="op">=</span><span class="st">'red'</span>, alpha<span class="op">=</span><span class="fl">0.1</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html">geom_ribbon</a></span><span class="op">(</span>mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>ymin<span class="op">=</span><span class="va">predict</span><span class="op">[</span><span class="fl">1</span>,<span class="op">]</span>, ymax<span class="op">=</span><span class="va">predict</span><span class="op">[</span><span class="fl">3</span>,<span class="op">]</span><span class="op">)</span>, fill<span class="op">=</span><span class="st">'red'</span>, alpha<span class="op">=</span><span class="fl">0.1</span><span class="op">)</span> <span class="op">+</span>
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html">geom_ribbon</a></span><span class="op">(</span>mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>ymin<span class="op">=</span><span class="va">predict.2</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span>, ymax<span class="op">=</span><span class="va">predict.2</span><span class="op">[</span>,<span class="fl">3</span><span class="op">]</span><span class="op">)</span>, fill<span class="op">=</span><span class="st">'blue'</span>, alpha<span class="op">=</span><span class="fl">0.1</span><span class="op">)</span></code></pre></div>
-<div class="inline-figure"><img src="bayesmv_files/figure-html/unnamed-chunk-7-1.png" width="672"></div>
-<p>total savings</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="inline-figure"><img src="bayesmv_files/figure-html/unnamed-chunk-15-1.png" width="672"></div>
+<p>Predictions from both methods look almost exactly the same. Finally, let’s compare them on the basis of energy savings predictions. The following block generates a table containing the mean, lower and upper bounds of the 95% confidence interval, of predicted energy savings.</p>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">method</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"bayesian"</span>, <span class="st">"classical"</span><span class="op">)</span>
 <span class="co"># Mean savings</span>
 <span class="va">mean.savings</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">la</span><span class="op">$</span><span class="va">savings</span><span class="op">)</span>,
                   <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">predict.2</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span> <span class="op">-</span> <span class="va">df.post</span><span class="op">$</span><span class="va">use</span><span class="op">)</span><span class="op">)</span>
 <span class="co"># Lower and upper bounds of the 95% confidence interval of savings</span>
-<span class="va">lower.bound</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">predict.1</span><span class="op">[</span><span class="fl">1</span>,<span class="op">]</span> <span class="op">-</span> <span class="va">df.post</span><span class="op">$</span><span class="va">use</span><span class="op">)</span>,
+<span class="va">lower.bound</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">predict</span><span class="op">[</span><span class="fl">1</span>,<span class="op">]</span> <span class="op">-</span> <span class="va">df.post</span><span class="op">$</span><span class="va">use</span><span class="op">)</span>,
                  <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">predict.2</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span> <span class="op">-</span> <span class="va">df.post</span><span class="op">$</span><span class="va">use</span><span class="op">)</span><span class="op">)</span>
-<span class="va">upper.bound</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">predict.1</span><span class="op">[</span><span class="fl">3</span>,<span class="op">]</span> <span class="op">-</span> <span class="va">df.post</span><span class="op">$</span><span class="va">use</span><span class="op">)</span>,
+<span class="va">upper.bound</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">predict</span><span class="op">[</span><span class="fl">3</span>,<span class="op">]</span> <span class="op">-</span> <span class="va">df.post</span><span class="op">$</span><span class="va">use</span><span class="op">)</span>,
                  <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">predict.2</span><span class="op">[</span>,<span class="fl">3</span><span class="op">]</span> <span class="op">-</span> <span class="va">df.post</span><span class="op">$</span><span class="va">use</span><span class="op">)</span><span class="op">)</span> 
 <span class="va">svgs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">method</span>, <span class="va">mean.savings</span>, <span class="va">lower.bound</span>, <span class="va">upper.bound</span><span class="op">)</span>
 
 <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">svgs</span><span class="op">)</span></code></pre></div>
 <pre><code>##      method mean.savings lower.bound upper.bound
-## 1  bayesian     75604.20  -11293.806    161877.8
+## 1  bayesian     75719.34  -11229.684    162575.0
 ## 2 classical     75564.54   -6385.537    157514.6</code></pre>
-<p>display results in table?</p>
-<p>Conclusion : we get the same results with both approaches. The Bayesian method seems much more complicated than the classical method but we’ll show in the next tutorials that it will remain the same regardless of model complexity, while the classical approach cannot keep up</p>
+</div>
+<div id="conclusion" class="section level2" number="3.6">
+<h2>
+<span class="header-section-number">3.6</span> Conclusion<a class="anchor" aria-label="anchor" href="#conclusion"><i class="fas fa-link"></i></a>
+</h2>
+<p>In this tutorial, we showed how to perform Bayesian linear regression with Stan, in a typical M&amp;V workflow. We estimate post-retrofit energy savings, adjusted to heating and cooling degree-days.</p>
+<p>We showed that we obtain the same results (parameter estimates, model validation metrics, energy use predictions, savings uncertainty) with the Bayesian approach than the deterministic ordinary linear regression method. The Bayesian method seems much more complicated than the classical method, but we’ll show in the next tutorials that its workflow will remain the same regardless of model complexity, while the classical approach may no longer have simple solutions for estimating savings uncertainty.</p>
 
 </div>
 </div>
   <div class="chapter-nav">
-<div class="prev"><a href="optCbasics.html">IPMVP Option C</a></div>
+<div class="prev"><a href="back-bayes.html"><span class="header-section-number">2</span> Bayesian data analysis</a></div>
 <div class="next"><a href="optCchangepoint.html"><span class="header-section-number">4</span> Tutorial 2: change-point model</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
 <li><a class="nav-link" href="#optClinreg"><span class="header-section-number">3</span> Tutorial 1: linear regression and introduction to Stan</a></li>
+<li><a class="nav-link" href="#data"><span class="header-section-number">3.1</span> Data</a></li>
 <li>
-<a class="nav-link" href="#modelling"><span class="header-section-number">3.1</span> Modelling</a><ul class="nav navbar-nav">
-<li><a class="nav-link" href="#model-training"><span class="header-section-number">3.1.1</span> Model training</a></li>
-<li><a class="nav-link" href="#convergence-diagnostics"><span class="header-section-number">3.1.2</span> Convergence diagnostics</a></li>
+<a class="nav-link" href="#model-specification-first-look-at-a-stan-model"><span class="header-section-number">3.2</span> Model specification: first look at a Stan model</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#ordinary-linear-regression"><span class="header-section-number">3.2.1</span> Ordinary linear regression</a></li>
+<li><a class="nav-link" href="#linear-regression-with-stan"><span class="header-section-number">3.2.2</span> Linear regression with Stan</a></li>
 </ul>
 </li>
-<li><a class="nav-link" href="#validation"><span class="header-section-number">3.2</span> Validation</a></li>
-<li><a class="nav-link" href="#prediction-of-savings"><span class="header-section-number">3.3</span> Prediction of savings</a></li>
+<li>
+<a class="nav-link" href="#model-fit-and-inference-diagnostics"><span class="header-section-number">3.3</span> Model fit and inference diagnostics</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#sampling-from-the-posterior"><span class="header-section-number">3.3.1</span> Sampling from the posterior</a></li>
+<li><a class="nav-link" href="#results"><span class="header-section-number">3.3.2</span> Results</a></li>
+<li><a class="nav-link" href="#inference-diagnostics"><span class="header-section-number">3.3.3</span> Inference diagnostics</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#model-checking-and-validation"><span class="header-section-number">3.4</span> Model checking and validation</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#measures-of-model-adequacy"><span class="header-section-number">3.4.1</span> Measures of model adequacy</a></li>
+<li><a class="nav-link" href="#checking-model-parameters"><span class="header-section-number">3.4.2</span> Checking model parameters</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#prediction-of-savings"><span class="header-section-number">3.5</span> Prediction of savings</a></li>
+<li><a class="nav-link" href="#conclusion"><span class="header-section-number">3.6</span> Conclusion</a></li>
 </ul>
 
       <div class="book-extra">

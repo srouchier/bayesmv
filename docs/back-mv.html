@@ -6,20 +6,42 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Chapter 1 Measurement and verification | Bayesian Measurement and Verification</title>
 <meta name="author" content="Simon Rouchier">
-<meta name="description" content="1.1 Intro to M&amp;V Minimal background on the basics of M&amp;V. Just the essentials so the website is self-sufficient. For further reading, link to the other resources.  1.2 IPMVP Main concepts of the...">
+<meta name="description" content="This chapter and the next one are excerpts of the author’s larger website on building energy statistical modelling.  1.1 Intro to M&amp;V and the IPMVP Measurement and Verification (M&amp;V) is the...">
 <meta name="generator" content="bookdown 0.26 with bs4_book()">
 <meta property="og:title" content="Chapter 1 Measurement and verification | Bayesian Measurement and Verification">
 <meta property="og:type" content="book">
-<meta property="og:description" content="1.1 Intro to M&amp;V Minimal background on the basics of M&amp;V. Just the essentials so the website is self-sufficient. For further reading, link to the other resources.  1.2 IPMVP Main concepts of the...">
+<meta property="og:description" content="This chapter and the next one are excerpts of the author’s larger website on building energy statistical modelling.  1.1 Intro to M&amp;V and the IPMVP Measurement and Verification (M&amp;V) is the...">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Chapter 1 Measurement and verification | Bayesian Measurement and Verification">
-<meta name="twitter:description" content="1.1 Intro to M&amp;V Minimal background on the basics of M&amp;V. Just the essentials so the website is self-sufficient. For further reading, link to the other resources.  1.2 IPMVP Main concepts of the...">
+<meta name="twitter:description" content="This chapter and the next one are excerpts of the author’s larger website on building energy statistical modelling.  1.1 Intro to M&amp;V and the IPMVP Measurement and Verification (M&amp;V) is the...">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
 <script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
 <script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
     
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<style type="text/css">
+    /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+        }
+    .hanging div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }
   </style>
 </head>
 <body data-spy="scroll" data-target="#toc">
@@ -46,8 +68,7 @@
 <li class="book-part">Background</li>
 <li><a class="active" href="back-mv.html"><span class="header-section-number">1</span> Measurement and verification</a></li>
 <li><a class="" href="back-bayes.html"><span class="header-section-number">2</span> Bayesian data analysis</a></li>
-<li class="book-part">Whole building M&amp;V</li>
-<li><a class="" href="optCbasics.html">IPMVP Option C</a></li>
+<li class="book-part">Whole building M&amp;V: option C</li>
 <li><a class="" href="optClinreg.html"><span class="header-section-number">3</span> Tutorial 1: linear regression and introduction to Stan</a></li>
 <li><a class="" href="optCchangepoint.html"><span class="header-section-number">4</span> Tutorial 2: change-point model</a></li>
 <li><a class="" href="optCautocorr.html"><span class="header-section-number">5</span> Tutorial 3: autocorrelation</a></li>
@@ -65,23 +86,78 @@
 <h1>
 <span class="header-section-number">1</span> Measurement and verification<a class="anchor" aria-label="anchor" href="#back-mv"><i class="fas fa-link"></i></a>
 </h1>
-<div id="intro-to-mv" class="section level2" number="1.1">
+<p>This chapter and the next one are excerpts of <a href="https://buildingenergygeeks.org/index.html">the author’s larger website</a> on building energy statistical modelling.</p>
+<div id="intro-to-mv-and-the-ipmvp" class="section level2" number="1.1">
 <h2>
-<span class="header-section-number">1.1</span> Intro to M&amp;V<a class="anchor" aria-label="anchor" href="#intro-to-mv"><i class="fas fa-link"></i></a>
+<span class="header-section-number">1.1</span> Intro to M&amp;V and the IPMVP<a class="anchor" aria-label="anchor" href="#intro-to-mv-and-the-ipmvp"><i class="fas fa-link"></i></a>
 </h2>
-<p>Minimal background on the basics of M&amp;V. Just the essentials so the website is self-sufficient. For further reading, link to the other resources.</p>
+<p>Measurement and Verification (M&amp;V) is the process of assessing savings caused by an Energy Conservation Measure (ECM). M&amp;V is a crucial tool in the establishment of Energy Performance Contracts (EPC), which can be established on the basis of designed performance (building energy simulation), with an eventual uncertainty analysis and/or sensitivity analysis, or on the basis of measured energy consumption.</p>
+<p>The International Performance Measurement and Verification Protocol (IPMVP) formalizes this process, and presents several options to conduct it. Savings are determined by comparing measured consumption or demand before and after implementation of a program, making suitable adjustments for changes in conditions.</p>
+<p>An example of adjustment is, when estimating the energy savings delivered by an ECM, to substract its new energy consumption from the consumption that would have occurred <em>if the building had stayed in the same situation</em> in the weather conditions of the reporting period (adjusted baseline consumption). This requires a prediction model that can extrapolate the initial behaviour of the building by accounting for variable weather conditions. Other possible adjustments include changes in occupancy schedules. This is necessary to assess whether measured energy savings are caused by the ECM itself, or by changes in these influences.</p>
+<div class="figure">
+<span style="display:block;" id="fig:ipmvp"></span>
+<img src="figures/mv.png" alt="The IPMVP provides guidelines on how to perform M&amp;V" width="90%"><p class="caption">
+Figure 1.1: The IPMVP provides guidelines on how to perform M&amp;V
+</p>
 </div>
-<div id="ipmvp" class="section level2" number="1.2">
+<p>In the “avoided energy consumption” approach, savings are reported under the conditions of the reporting (post-retrofit) period. Alternatively, in the “normalized savings” approach, savings are calculated under a separate set of conditions, which requires fitting separate models for the pre- and post-ECM periods, and comparing their predictions in these new conditions.</p>
+<p>The IPMVP presents several <strong>options</strong>, depending on whether the operation concerns an entire facility or a portion, and defines the notion of <strong>measurement boundary</strong> as the set of measurements that are relevant to determine savings (see Sec. <a href="back-mv.html#boundaries">1.2</a> below).</p>
+<ul>
+<li>In order to verify the savings from a single equipment, and a measurement boundary can be drawn around it, the approach used is <strong>retrofit-isolation</strong>: IPMVP options A and B.</li>
+<li>If the purpose of reporting is to verify total facility energy performance, the approach is the <strong>whole-facility</strong> option C.</li>
+<li>In the IPMVP option D, savings are determined through simulation of the pre-ECM energy consumption rather than direct measurements. The simulation model is calibrated so that it predicts the energy and load that matches the post-ECM metered data.</li>
+</ul>
+</div>
+<div id="boundaries" class="section level2" number="1.2">
 <h2>
-<span class="header-section-number">1.2</span> IPMVP<a class="anchor" aria-label="anchor" href="#ipmvp"><i class="fas fa-link"></i></a>
+<span class="header-section-number">1.2</span> Measurement and modelling boundaries<a class="anchor" aria-label="anchor" href="#boundaries"><i class="fas fa-link"></i></a>
 </h2>
-<p>Main concepts of the IPMVP: the 4 options and the workflows. Again, keeping it short.</p>
+<p>Most M&amp;V options rely on the definition of a numerical model which reproduces the relationship between the variables monitored at the measurement boundary.</p>
+<ul>
+<li>The dependent variable <span class="math inline">\(y\)</span>, or model output, is a variable that we wish for a fitted model to be able to predict.</li>
+<li>The explanatory variables, or independent variables, are the model inputs by which we try to explain the evolutions of the dependent variable. Explanatory variables are denoted <span class="math inline">\(x\)</span> in most regression models, or <span class="math inline">\(u\)</span> in more complex hierarchical models where <span class="math inline">\(x\)</span> may denote a latent variable instead.</li>
+<li>Some models have <em>latent</em> variables, which are unobserved and affect the dependent variable.</li>
+</ul>
+<p>The IPMVP defines measurement boundaries as “notional boundaries drawn around equipment, systems or facilities to segregate those which are relevant to saving determination from those which are not. All Energy Consumption and Demand of equipment or systems within the boundary must be measured or estimated. […] Any energy effects occurring beyond the selected measurement boundary are called interactive effects. The magnitude of any interactive effects needs to be estimated or evaluated to determine savings associated with the ECMs.”</p>
+<p>The same definition of boundaries work for simulations: a model must be defined so that its inputs and outputs are the measured independent and dependent variables, and all energy effects occurring within these boundaries are either fixed, or part of the list of parameters <span class="math inline">\(\theta\)</span> that will be estimated by calibration.</p>
+<div class="figure">
+<span style="display:block;" id="fig:boundaries1"></span>
+<img src="figures/boundaries1.png" alt="Building energy models simulate the interactions between envelope, ambiance, HVAC systems and their controls, described by a finite set of parameters. The explanatory variables are related to the two conditions mentioned earlier: weather and occupants. The dependent variables are separate energy consumptions." width="90%"><p class="caption">
+Figure 1.2: Building energy models simulate the interactions between envelope, ambiance, HVAC systems and their controls, described by a finite set of parameters. The explanatory variables are related to the two conditions mentioned earlier: weather and occupants. The dependent variables are separate energy consumptions.
+</p>
+</div>
+<p>Typical modelling boundaries of building energy simulation (BES) resemble Fig. <a href="back-mv.html#fig:boundaries1">1.2</a>. The time-varying inputs provided by the user are weather files and occupancy profiles. Most of the time, the latter come from standard scenarios rather than measurement. Occupancy is understood by BES as a finite set of actions and influences: presence, temperature set-points, use of appliances. The model returns predictions of energy use, usually with a higher level of disaggregation (consumption of each system) than is easily available by measurement.</p>
 </div>
 <div id="back-stats" class="section level2" number="1.3">
 <h2>
-<span class="header-section-number">1.3</span> Statistical concepts<a class="anchor" aria-label="anchor" href="#back-stats"><i class="fas fa-link"></i></a>
+<span class="header-section-number">1.3</span> Error and uncertainty<a class="anchor" aria-label="anchor" href="#back-stats"><i class="fas fa-link"></i></a>
 </h2>
-<p>Quick list of statistical concepts: uncertainty, bias, correlation, etc.</p>
+<p>Inverse problem theory can be summed up as the science of training models using measurements. The target of such a training is either to learn physical properties of a system by indirect measurements, or setting up a predictive model that can reproduce past observations.</p>
+<p>The general principle of solving a system identification problem is to describe an observed phenomenon by a model allowing its simulation. Measurements <span class="math inline">\((\mathbf{x},\mathbf{y})\)</span> are carried in an experimental setup: a building is probed for the quantities from which we wish to estimate its energy performance (indoor temperature, meter readings, climate, etc.) A model is defined as a mapping between some of the measurements set as input <span class="math inline">\(\mathbf{x}\)</span> (boundary conditions, weather data) and some as output <span class="math inline">\(\mathbf{y}\)</span>. A numerical model is a mathematical formulation of the outputs <span class="math inline">\(f(x, \theta)\)</span>, parameterised by a finite set of variables <span class="math inline">\(\theta\)</span>. The most intuitive way to calibrate a model is to minimize an indicator such as the sum of squared residuals, in order to find the value of <span class="math inline">\(\theta\)</span> that makes the model most closely match the data.</p>
+<p>Ideally, the model is unbiased: it accurately describes the behaviour of the system, so that there exists a true value <span class="math inline">\(\theta^*\)</span> of the parameter vector for which the model output reproduces the undisturbed value of observed variables.
+<span class="math display" id="eq:bias">\[\begin{equation}
+y_k = f(x_k, \theta^*) + \varepsilon_k
+\tag{1.1}
+\end{equation}\]</span>
+where <span class="math inline">\(\varepsilon\)</span> denotes measurement error, i.e. the difference between the real process and its observed value <span class="math inline">\(y\)</span>. The most convenient assumption is that of additive noise, i.e. <span class="math inline">\(\varepsilon_k\)</span> is a sequence of independent and identically distributed random variables.</p>
+<p>In practice, <span class="math inline">\(\theta^*\)</span> will never be reached exactly, but rather approached by an estimator <span class="math inline">\(\hat \theta\)</span>, because the entire process of estimating it from measurements is disturbed by an array of approximations:</p>
+<ul>
+<li>Experimental errors. The numerical data <span class="math inline">\((x,y)\)</span> available for model calibration differs from the hypothetical outcome of the ideal, undisturbed physical system. Sensors may be intrusive, produce noisy measurements, may be poorly calibrated, have a finite precision and resolution…</li>
+<li>Numerical errors. The hypothesis of an unbiased model (Eq. <a href="back-mv.html#eq:bias">(1.1)</a>) states that there exists a parameter value <span class="math inline">\(\theta^*\)</span> for which the model output is separated from the observations <span class="math inline">\(y\)</span> only by a zero mean, Gaussian distributed measurement noise. It means that the model perfectly reproduces the physical reality, and the only perceptible error is due to the imperfection of sensors. This is exceedingly optimistic, especially in building energy simulation.</li>
+</ul>
+<div class="figure">
+<span style="display:block;" id="fig:errors"></span>
+<img src="figures/errors.png" alt="Errors and uncertainties on parameter estimation, caused by measurement and modelling errors" width="80%"><p class="caption">
+Figure 1.3: Errors and uncertainties on parameter estimation, caused by measurement and modelling errors
+</p>
+</div>
+<p>The Guide to the expression of Uncertainty in Measurement (GUM)(<span class="citation">JCGM (<a href="bayesian-calibration.html#ref-jcgm2008evaluation" role="doc-biblioref">2008</a>)</span>) then separates errors into a <strong>random</strong> component and a <strong>systematic</strong> component: systematic errors are errors which retain a non-zero mean if the measurement was repeated an infinite number of times under repeatability conditions. Systematic and random errors, whether they concern the measurement or the modelling procedures, will affect the estimation of a parameter <span class="math inline">\(\theta\)</span> in terms of <strong>accuracy</strong> and <strong>precision</strong>. The figure above illustrates accuracy and precision in the case of estimating a parameter value <span class="math inline">\(\theta\)</span>, but the exact same terminology can be used if the purpose of the trained model is to predict the future values of a variable <span class="math inline">\(y\)</span>.</p>
+<ul>
+<li>The GUM defines <strong>uncertainty</strong> (of measurement) as the dispersion of the values that could reasonably be attributed to a measured quantity. Similarly, parameter estimates or model predictions come with an uncertainty, which quantifies their possible range of values caused by the random errors in the measurement and modelling processes. Precision is an indicator of low uncertainty, and can be conveyed by <strong>confidence intervals</strong>.</li>
+<li>On the other hand, accuracy is a measure of <strong>bias</strong>. It is the difference between the “true” value of the target variable and the mean of our estimation.</li>
+</ul>
+<p>Biased estimates and predictions are the outcome of errors that have not been explicitely taken into account in the inverse problem. We tend to prefer low bias and high uncertainty, than high bias and low uncertainty: indeed, a high uncertainty suggests that the data were not sufficient to provide confident inferences, which incites caution when communicating the results.</p>
+<p>This description of bias and uncertainty applies not only to the value of estimated model parameters, but to all predictions subsequently performed by the fitted model. In particular, this concerns the estimation of savings which are based on energy use predictions: <strong>our end goal is to obtain reliable (unbiased) inference of energy savings and their uncertainty</strong>. The motivation of this guide is to show that Bayesian methods are well suited for this goal.</p>
 
 </div>
 </div>
@@ -92,9 +168,9 @@
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
 <li><a class="nav-link" href="#back-mv"><span class="header-section-number">1</span> Measurement and verification</a></li>
-<li><a class="nav-link" href="#intro-to-mv"><span class="header-section-number">1.1</span> Intro to M&amp;V</a></li>
-<li><a class="nav-link" href="#ipmvp"><span class="header-section-number">1.2</span> IPMVP</a></li>
-<li><a class="nav-link" href="#back-stats"><span class="header-section-number">1.3</span> Statistical concepts</a></li>
+<li><a class="nav-link" href="#intro-to-mv-and-the-ipmvp"><span class="header-section-number">1.1</span> Intro to M&amp;V and the IPMVP</a></li>
+<li><a class="nav-link" href="#boundaries"><span class="header-section-number">1.2</span> Measurement and modelling boundaries</a></li>
+<li><a class="nav-link" href="#back-stats"><span class="header-section-number">1.3</span> Error and uncertainty</a></li>
 </ul>
 
       <div class="book-extra">

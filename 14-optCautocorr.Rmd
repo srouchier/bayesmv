@@ -1,5 +1,7 @@
 # Tutorial 3: autocorrelation {#optCautocorr}
 
+click here for an interactive version of this tutorial
+
 This is a follow-up to tutorial 2 where we explain autocorrelation and how to deal with it.
 
 If a fitted model has autocorrelated residuals, then we have two options :
