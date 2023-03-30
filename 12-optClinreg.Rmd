@@ -10,7 +10,7 @@ For this purpose, we use a very short dataset and an ordinary linear regression 
 
 The data are monthly measurements of whole-facility energy use (kWh), as well as heating degree-days and cooling degree-days (°C.day).
 
-```{r, warning=FALSE, message=FALSE}
+```{r linreg01, warning=FALSE, message=FALSE, fig.cap="Electricity use vs. heating degree days; blue: pre-ECM; red: post-ECM"}
 library(rstan)
 library(tidyverse)
 
@@ -25,7 +25,9 @@ df.post <- data.frame(cdd = c(0, 3, 13, 23, 19, 16, 0, 0, 0, 0, 0, 0),
                       use = c(25416, 17445, 13626, 19295, 17970, 15158,
                               13293, 35297, 35665, 38562, 33383, 37244))
 
-ggplot(df.pre, aes(x=hdd, y=use)) + geom_point()
+ggplot() +
+  geom_point(data = df.pre, aes(x=hdd, y=use), color="blue") +
+  geom_point(data = df.post, aes(x=hdd, y=use), color="red")
 ```
 
 ## Model specification: first look at a Stan model
@@ -55,7 +57,7 @@ Linear regression is naturally the first example given in the [Stan documentatio
 
 A Stan model can be either written in a separate file, or included into your R script (or other language) as follows:
 
-```{r}
+```{r linreg02}
 linearregression <- "
 data {
 // Baseline data (pre)
@@ -110,7 +112,7 @@ By including these two variables in the `generated quantities` block.
 
 The next step is to map the data contained in the `df.pre` and `df.post` dataframes to the Stan model. We do this by defining a list of variables that should match all items defined in the `data` block:
 
-```{r}
+```{r linreg03}
 data_list <- list(N = nrow(df.pre),
                   K = 2,
                   x = df.pre %>% select(cdd, hdd),
@@ -125,13 +127,13 @@ The first column of the $\mathbf{X}$ matrix are the cooling degree-days, and the
 We can now get a fit with the following command. The important arguments are:
 
 * `model_code` points to the Stan code. If you chose to write the R code in a separate file, for instance called `linearregression.stan`, you may replace the line `model_code = linearregression` with `file = 'linearregression.stan'` (by pointing to the appropriate location of the file).
-* `data` points to the list of variables that we just defines.
+* `data` points to the list of variables that we just defined.
 * `chains` should be at least 4. 
 * `iter` is the number of iterations per chain.
 * `warmup` is the number of discarded iterations at the start of every chain.
 Default values are `chains = 4`, `warmup = 1000` and `iter = 2000`, which will result in `chains*(iter-warmup)=4000` samples. This appeared slightly insufficient in our case because of the very small dataset, so we raised `iter`.
 
-```{r, cache=TRUE}
+```{r linreg04, cache=TRUE}
 fit <- stan(
   model_code = linearregression,  # Stan program
   data = data_list,        # named list of data
@@ -147,26 +149,28 @@ Model fitting takes longer the first time the `stan()` command is run, because t
 
 ### Results
 
+
 The `fit` object returned by `stan` is associated with methods such as `print`, `plot` and `pairs`, letting us have a first look at our results.
+
 * The `print` method shows some posterior metrics of the parameters and generated quantities: mean, standard deviation, quantiles, effective sample size, R-hat.
 
-```{r}
+```{r linreg05}
 print(fit, pars=c("alpha", "beta", "sigma", "savings"), probs=c(.025,.5,.975))
 ```
 
 * `traceplot` shows the traces of the selected parameters and variables. If the fitting has converged, all traces should coincide and approximate posterior distributions.
 
-```{r}
+```{r linreg06, fig.cap="Traces of the regression coefficients"}
 traceplot(fit, pars=c("alpha", "beta", "sigma", "savings"))
 ```
 
 * `pairs` shows the pairwise relationships between parameters. Strong interactions between some parameters are an indication that the model should be re-parameterised.
 
-```{r}
+```{r linreg07, fig.cap="Pairplot of the regression coefficients"}
 pairs(fit, pars=c("alpha", "beta", "sigma", "savings"))
 ```
 
-### Inference diagnostics
+### Inference diagnostics {#inferencediagnostics}
 
 Running the `stan()` command may return a variety of warnings [to help users diagnose and resolve underlying modelling problems](https://mc-stan.org/misc/warnings.html).
 
@@ -200,7 +204,7 @@ MCMC convergence is necessary, but does not guarantee that our model is the best
 
 The `extract` function returns model parameters and generated quantities into a named list.
 
-```{r}
+```{r linreg08}
 la <- rstan::extract(fit, permuted = TRUE)
 summary(la$savings)
 ```
@@ -208,7 +212,7 @@ For instance `la$alpha` and `la$savings` hold the value of the parameter $\alpha
 
 Here is a way to summarise posterior predictions into only a few quantiles: 
 
-```{r}
+```{r linreg09, fig.cap="Comparison of model prediction and measurements in the pre period"}
 # median, lower and upper bounds of the 95% prediction intervals
 predict <- apply(la$prediction, 2, quantile, probs=c(0.025, 0.5, 0.975))
 # mean prediction
@@ -224,7 +228,7 @@ ggplot(mapping = aes(x = array(1:nrow(df.pre)))) +
 
 We can calculate the usual metrics with the mean posterior prediction: coefficient of determination $R^2$, CV(RMSE), F-statistic...
 
-```{r, results='hold'}
+```{r linreg10, results='hold'}
 residuals <- predict.mean - df.pre$use        # residuals
 ssres <- sum(residuals^2)                     # sum of squared residuals
 sstot <- sum((df.pre$use-mean(df.pre$use))^2) # total sum of squares
@@ -237,17 +241,17 @@ print(paste("CV(RMSE) =", CVRMSE))
 ```
 Prediction residuals should have low autocorrelation. This can be checked by the Durbin-Watson statistic, or with an autocorrelation plot:
 
-```{r}
+```{r linreg11, fig.cap="Autocorrelation function of the linear model residuals"}
 acf(residuals)
 ```
 
-Our simple linear model has low autocorrelation of residuals, but the $R^2$ index is quite low: a significant part of the data's variance is unexplained.
+We won't elaborate much on this plot because we will focus on it in the next tutorial. In short, our simple linear model has low autocorrelation of residuals: this criterion is satisfied. However, the $R^2$ index is quite low: a significant part of the data's variance is unexplained.
 
 ### Checking model parameters
 
 Individual parameter adequacy can be checked with the $t$-statistic or the $p$-value.
 
-```{r, results='hold'}
+```{r linreg12, results='hold'}
 # Trace of all parameters and generated quantities
 traces <- as.data.frame(fit)
 # Only the parameters
@@ -265,7 +269,7 @@ We can see that one $p$-value is over 0.05: `beta[1]` which is the regression co
 
 The pairwise correlation of parameters is already visible on the `pairplot` shown earlier. There is a high correlation between them, which we can confirm quantitatively:
 
-```{r}
+```{r linreg13}
 cor(traces.p)
 ```
 
@@ -275,7 +279,7 @@ We are only partially reassured on the adequacy of our model: the $R^2$ is not v
 
 Let's fit a regular deterministic linear model, in order to compare its results with our Bayesian method:
 
-```{r}
+```{r linreg14}
 fit2 <- lm(use ~ cdd + hdd, df.pre)
 summary(fit2)
 ```
@@ -286,7 +290,7 @@ The coefficients are the same as the Bayesian output. Without doing any model ch
 
 Let's now compare energy use predictions during the post-retrofit period, with the Bayesian method (in red) and the classical method (in blue):
 
-```{r}
+```{r linreg15, fig.cap="Model predictions and measurements in the post period"}
 predict.2 <- predict(fit2, newdata = df.post, interval = "prediction", level=0.95)
 
 xplot <- array(1:nrow(df.post))
@@ -300,7 +304,7 @@ ggplot(mapping = aes(x = xplot)) +
 
 Predictions from both methods look almost exactly the same. Finally, let's compare them on the basis of energy savings predictions. The following block generates a table containing the mean, lower and upper bounds of the 95% confidence interval, of predicted energy savings.
 
-```{r}
+```{r linreg16}
 method <- c("bayesian", "classical")
 # Mean savings
 mean.savings <- c(mean(la$savings),
@@ -314,6 +318,8 @@ svgs <- data.frame(method, mean.savings, lower.bound, upper.bound)
 
 print(svgs)
 ```
+
+The mean savings estimate is the same with both method (with less than 1% difference), but there is some discrepancy on the lower and upper bounds of the 95% interval. I don't believe there is a real reason for this gap since the specification of both models is identical. It is probably caused by the finite number of samples to properly approximate the tails of the posterior distribution.
 
 ## Conclusion
 

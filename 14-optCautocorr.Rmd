@@ -1,110 +1,99 @@
-# Tutorial 3: autocorrelation {#optCautocorr}
+# Tutorial 3: correlated residuals {#optCautocorr}
 
-click here for an interactive version of this tutorial
-
-This is a follow-up to tutorial 2 where we explain autocorrelation and how to deal with it.
+In [tutorial 2](#optCchangepoint), we fitted a change-point model, function of outdoor air temperature, on the daily energy use data of a commercial building. It gave us an estimate of energy savings following an energy conservation measure, with uncertainty. However we saw that the autocorrelation of the model's prediction residuals was too high to trust this inference.
 
 If a fitted model has autocorrelated residuals, then we have two options :
 
-* If possible, improve the model itself with a better description of the building and its physics;
+* If possible, improve the model itself with a better description of the building and its occupancy;
 * If is it not possible to improve the model any further, because the data are insufficient to learn additional parameters, and autocorrelation remains, then we can somehow "include it" in the model.
 
-The latter accounts to accepting that we reached a ceiling for model refinement, and making reliable predictions will come at the cost of increased uncertainty.
+The second option means that we will not "fix" the model, but let it aknowledge that it is missing something. Making reliable predictions will come at the cost of increased uncertainty.
 
-Consider the general model formulation where the observed variable (energy use) $y$ at time $t$ is expected
+## Moving average models
 
-$$
-y_t = f(T_t, occ_t) + \varepsilon_t
-$$
+So far, the models we have used in tutorial 1 and 2 looked like this:
 
-where $f$ can be any function of observed variables (ambient temperature, occupancy, etc.)
+\begin{equation}
+y_t = f(x_t) + \varepsilon_t (\#eq:autocorr1) 
+\end{equation}
 
-A moving average (MA) model uses previous errors as predictors for future outcomes (see [Stan documentation](https://mc-stan.org/docs/stan-users-guide/moving-average-models.html)). For a MA model of order $Q$, $\mathrm{MA}(Q)$ we add regression coefficients $\theta_q$ for previous error terms.
+where $y_t$ are observed dependent data (energy use) and $f$ can be any function of some explanatory variables $x_t$ (outdoor temperature, occupancy, solar irradiance, etc.): linear, change-point, or other.
 
-$$
-y_t = f(T_t, occ_t) + \theta_1 \varepsilon_{t-1} + \dots + \theta_Q \varepsilon_{t-Q} + \varepsilon_t
-$$
+However, if we found after model fitting that [residuals were correlated](#tuto2residuals), then Eq. \@ref(eq:autocorr1) no longer holds. Instead, the previous tutorial found a significant correlation between the consecutive errors $y_t - f(x_t)$ of the model:
 
+\begin{equation}
+y_t - f(x_t) = \theta_1 \varepsilon_{t-1} + \mathrm{normal}(0,\sigma^2) (\#eq:autocorr2)
+\end{equation}
 
+where $\theta_1$ is the lag-1 autocorrelation on Fig. \@ref(fig:tuto2corr1) and the slope of the trend on Fig. \@ref(fig:tuto2corr2).
 
-```{r, warning=FALSE, message=FALSE}
+The observational model is therefore:
+
+\begin{equation}
+y_t = f(x_t) + \theta_1 \varepsilon_{t-1} + \varepsilon_t (\#eq:autocorr3)
+\end{equation}
+
+The last term of this equation are the errors of this new model, which we hope is are now independent no longer autocorrelated: $\varepsilon_t\sim N(0,\sigma^2)$.
+
+In a more general form of this equation, we can even assume that residuals are correlated with their own previous values up to a higher lag $Q$:
+
+\begin{equation}
+y_t = f(x_t) + \theta_1 \varepsilon_{t-1} + \dots + \theta_Q \varepsilon_{t-Q} + \varepsilon_t (\#eq:autocorr4)
+\end{equation}
+
+This is the formulation of a Moving Average (MA) model of order $Q$, $\mathrm{MA}(Q)$. It uses previous errors as predictors for future outcomes. Compared to the original model $f(x_t)$, this model has additional parameters $\left(\theta_1,...,\theta_Q\right)$. The Stan documentation has [a page on MA models](https://mc-stan.org/docs/stan-users-guide/moving-average-models.html), which we used as starting point for this tutorial.
+
+## Data
+
+This first block is just the same code as the beginning of [tutorial 2](optCchangepoint), rewritten here as is.
+
+```{r acf01, warning=FALSE, message=FALSE}
 library(rstan)
 library(tidyverse)
 library(lubridate)
-```
 
+# Reading data and identifying the dates
+df.pre  <- read_csv("data/building6pre.csv")  %>% mutate(Date = mdy_hm(Date))
+df.dur  <- read_csv("data/building6during.csv")  %>% mutate(Date = mdy_hm(Date))
+df.post <- read_csv("data/building6post.csv") %>% mutate(Date = mdy_hm(Date))
 
-```{r, warning=FALSE, message=FALSE}
-# Baseline data: one year
-df.pre <- read_csv("data/Long-term 11 commercial buildings/building60preoffice.csv") %>% 
-  mutate(DateTime = mdy_hm(Date),
-         Date = as_date(DateTime))
-
-# Post-retrofit data: one year
-df.post <- read_csv("data/Long-term 11 commercial buildings/building61duringoffice.csv") %>% 
-  mutate(DateTime = mdy_hm(Date),
-         Date = as_date(DateTime))
-
-# Plot the original data
-head(df.pre)
-ggplot(data = df.pre) + geom_line(mapping = aes(x=DateTime, y=`Building 6 kW`))
-```
-
-
-
-```{r}
+# Quick preprocessing and daily averaging
 daily.average <- function(df) {
   df %>% 
-    group_by(Date) %>% 
-    summarise(OAT = mean(OAT),
+    mutate(day = as_date(Date)) %>%
+    group_by(day) %>% 
+    summarise(T = (mean(OAT)-32)/1.8,
               E = sum(`Building 6 kW`),
-              .groups = 'drop'
-    ) %>% 
-    mutate(wday = wday(Date),
-           week.end = wday==1 | wday==7,
-           T = (OAT-32) * 5/9)
+              .groups = 'drop') %>% 
+    mutate(wday = wday(day),
+           week.end = wday==1 | wday==7)
 }
 
-df.pre.daily <- daily.average(df.pre)
-df.post.daily <- daily.average(df.post)
-
-ggplot(data = df.pre.daily) +
-  geom_point(mapping = aes(x=T, y=E, color=week.end))
+# Filtering out the week ends
+df.pre.day  <- daily.average(df.pre) %>% filter(!week.end) %>% mutate(period = 'pre')
+df.dur.day  <- daily.average(df.dur) %>% filter(!week.end) %>% mutate(period = 'during')
+df.post.day <- daily.average(df.post) %>% filter(!week.end) %>% mutate(period = 'post')
 ```
 
+## Modelling and training
 
+### Model specification
 
-```{r}
-df.pre.daily <- daily.average(df.pre) %>% filter(!week.end)
-df.post.daily <- daily.average(df.post) %>% filter(!week.end)
+We will use the same change-point model as in tutorial 2, only modified to include a regression term for the previous error $\varepsilon_{n-1}$. This makes it a first order moving average model, $\mathrm{MA}(1)$:
+
+\begin{align}
+y_n & = \alpha + \beta_{h}(\tau_{h}-x_n)^+ + \beta_{c}(x_n-\tau_{c})^+ + \theta_1 \varepsilon_{n-1} + \varepsilon_n (\#eq:autocorr5) \\
+\varepsilon_n & \sim \mathrm{normal}\left(0, \sigma\right) (\#eq:autocorr6)
+\end{align}
+
+The Stan code for this model is in a separate file `changepoint_ma1.stan`, and is more complicated than the original.
+
+Firstly, there is a new block called `transformed parameters`, between `parameters` and `model`, which calculates the main terms of Eq. \@ref(eq:autocorr5) so that the model itself is written concisely.
+
+* `f_pre` and `f_post` are the values of the change-point function itself, respectively during the pre and post periods.
+* `epsilon` are the residuals according to Eq. \@ref(eq:autocorr5), calculated one after another.
+
 ```
-
-see Stan doc on moving average models: https://mc-stan.org/docs/stan-users-guide/moving-average-models.html
-
-
-```{r}
-changepoint <- "
-data {
-  // This block declares all data which will be passed to the Stan model.
-  // Baseline period
-  int<lower=0> N_pre;        // number of data items
-  vector[N_pre] t_pre;      // ambient temperature
-  vector[N_pre] y_pre;      // outcome energy vector
-  // Reporting period
-  int<lower=0> N_post;        // number of data items
-  vector[N_post] t_post;      // ambient temperature
-  vector[N_post] y_post;      // outcome energy vector
-}
-parameters {
-  // This block declares the parameters of the model.
-  real alpha;      // baseline consumption
-  real beta_h;     // slope for heating
-  real tau_h;      // threshold temperature for heating
-  real beta_c;     // slope for cooling
-  real tau_c;      // threshold temperature for cooling
-  real<lower=0> sigma;  // error scale
-  real theta;     // moving average
-}
 transformed parameters {
   vector[N_pre] f_pre;
   vector[N_pre] epsilon;
@@ -120,25 +109,26 @@ transformed parameters {
     f_post[n] = alpha + beta_h * fmax(tau_h-t_post[n], 0) + beta_c * fmax(t_post[n]-tau_c, 0);
   }
 }
+```
+
+Then, the `model` reproduces Eq. \@ref(eq:autocorr5). Its formulation is quite tidy, since we defined each term in the previous block.
+
+```
 model {
-  // Assigning prior distributions on some parameters
-  alpha ~ normal(800, 100);
-  tau_h ~ normal(8, 2);
-  tau_c ~ normal(14, 2);
-  beta_h ~ normal(30, 5);
-  beta_c ~ normal(30, 5);
-  theta ~ normal(0.7, 0.2);
-  sigma ~ normal(80, 10);
-  // Observational model
+  ...
   for (n in 2:N_pre) {
     y_pre[n] ~ normal(f_pre[n] + theta*epsilon[n-1], sigma);
   }
 }
+```
+
+The block starts with the definition of some priors, which me omitted here although they belong in the model. Priors are important in a Bayesian workflow, and they are often the first way to regularise a model if convergence is difficult.
+
+Finally, the `generated quantities` block is used again to generate predictions of energy use and savings with each iteration.
+
+```
 generated quantities {
-  // This block is for posterior predictions. It is not part of model training
-  vector[N_pre] y_pre_pred;
-  vector[N_post] y_post_pred;
-  real savings = 0;
+  ...
   
   y_pre_pred[1] = normal_rng(f_pre[1], sigma);
   for (n in 2:N_pre) {
@@ -152,95 +142,126 @@ generated quantities {
     savings += y_post_pred[n] - y_post[n];
   }
 }
-"
 ```
 
+The predictions of energy use during the baseline (pre) period $\tilde{y}_\mathit{pre}$ account for previous residuals. However, a keen eye may have noticed a difference in the predictions of the post period $\tilde{y}_\mathit{post}$. Indeed, we do not know the value of residuals *after* the fitting period, since they are the difference between model predictions and the consumption of a hypothetical building *if it were identical to the pre-ECM building but in the post-ECM conditions*.
 
+Therefore, [the muti-step prediction intervals of ARIMA models](https://otexts.com/fpp2/arima-forecasting.html) (which MA models are a subclass of) must account for an increased uncertainty $\hat{\sigma}_h$ formulated after the MA regression coefficients $\theta_i$:
+
+\begin{align}
+\tilde{y}_\mathit{post} & \sim \mathrm{normal}\left(f(x_\mathit{post}), \sigma_h^2 \right) (\#eq:autocorr7) \\
+\hat{\sigma}_h & = \hat{\sigma}^2 \left[1+\sum_{i=1}^{h-1}\hat{\theta}_i^2\right] (\#eq:autocorr8)
+\end{align}
+
+We only have one $\theta_1$ coefficient in this $\mathrm{MA}(1)$ model, but Eq. \@ref(eq:autocorr8) applies to a $\mathrm{MA}(Q)$ model where we may want to include regression coefficients with several past errors.
+
+If you are still following, congratulations! This concludes the theoretical part of these tutorials.
+
+### Model fitting
+
+The next step is the same as in tutorial 2: defining a list which maps data to the Stan model, and calling the `stan()` command to fit the model.
  
-```{r}
+```{r acf02, cache=TRUE}
 model_data <- list(
-  N_pre = nrow(df.pre.daily),
-  t_pre = df.pre.daily$T,
-  y_pre = df.pre.daily$E,
-  N_post = nrow(df.post.daily),
-  t_post = df.post.daily$T,
-  y_post = df.post.daily$E
+  N_pre = nrow(df.pre.day),
+  x_pre = df.pre.day$T,
+  y_pre = df.pre.day$E,
+  N_post = nrow(df.post.day),
+  x_post = df.post.day$T,
+  y_post = df.post.day$E
 )
-```
 
-
-This model has a much harder time converging. I could only obtain good mixing with very high warmup
-
-```{r, cache=TRUE}
 # Fitting the model
-fit1 <- stan(
-  model_code = changepoint,  # Stan program
+fit <- stan(
+  file = 'models/changepoint_ma1.stan',  # Stan program
   data = model_data,        # named list of data
   chains = 4,               # number of Markov chains
-  warmup = 4000,            # number of warmup iterations per chain
-  iter = 6000,              # total number of iterations per chain
+  warmup = 3000,            # number of warmup iterations per chain
+  iter = 4000,              # total number of iterations per chain
   cores = 2,                # number of cores (could use one per chain)
-  refresh = 1,              # progress not shown
+  refresh = 0,              # progress not shown
 )
 ```
 
+We notice that convergence may be more difficult due to the added $\theta$ parameter: the model knows that something "more uncertain" is happening and some local optima may disturb the traces. In order to help convergence, we had to narrow down the prior distributions, and to increase the warmup and iteration numbers copiously.
 
+## Results
 
-```{r}
-print(fit1, pars = c("alpha", "beta_h", "tau_h", "beta_c", "tau_c", "sigma", "theta", "savings"))
-traceplot(fit1, pars = c("alpha", "beta_h", "tau_h", "beta_c", "tau_c", "sigma", "lp__"))
-pairs(fit1, pars = c("alpha", "beta_h", "tau_h", "beta_c", "tau_c", "sigma", "theta"))
+### First look at results
+
+The first look we can have at our results comes from the `print`, `plot` and `pairs` methods associated with the `fit` object:
+
+```{r acf03}
+print(fit, pars = c("alpha", "beta_h", "tau_h", "beta_c", "tau_c", "sigma", "theta", "savings"))
+traceplot(fit, pars = c("alpha", "beta_h", "tau_h", "beta_c", "tau_c", "sigma", "lp__"))
+pairs(fit, pars = c("alpha", "beta_h", "tau_h", "beta_c", "tau_c", "sigma", "theta"))
 ```
 
+Remember that we need to validate our [inference diagnostics](#inferencediagnostics) criteria! All traces must match, `n_eff` should be in the thousands and `Rhat` exactly 1 for all parameters.
 
+### Model checking
 
+The model checking metrics are the same as usual: coefficient of determination $R^2$, CV(RMSE), F-statistic... Here we calculate them only from the mean prediction rather than the full posterior distribution.
 
-```{r}
-# Extracting full predictive distributions from the stanfit object
-la <- rstan::extract(fit1, permuted = TRUE)
-y_pre_pred <- la$y_pre_pred
+```{r acf04, results='hold'}
+la <- rstan::extract(fit, permuted = TRUE)
+predict.mean <- colMeans(la$y_pre_pred)
 
-# Quantiles
-y_pre_quan <- apply(y_pre_pred, 2, quantile, probs=c(0.025, 0.5, 0.975))
+residuals <- predict.mean - df.pre.day$E      # residuals
+ssres <- sum(residuals^2)                     # sum of squared residuals
+sstot <- sum((df.pre.day$E-mean(df.pre.day$E))^2) # total sum of squares
 
-# Adding prediction quantiles to the baseline dataframe
-df.pre.daily <- df.pre.daily %>% mutate(pred_low = y_pre_quan[1, ],
-                                          pred_med = y_pre_quan[2, ],
-                                          pred_up = y_pre_quan[3, ])
+R2 <- 1 - ssres / sstot   # coefficient of determination
+CVRMSE <- sqrt(ssres / nrow(df.pre.day)) / mean(df.pre.day$E)
 
-# Plot
-ggplot(data = df.pre.daily) +
-  geom_point(mapping = aes(x=T, y=E)) +
-  geom_line(mapping = aes(x=T, y=pred_med), color='red') +
-  geom_ribbon(mapping = aes(x=T, ymin=pred_low, ymax=pred_up), fill='red', alpha=0.1)
+print(paste("R2 =", R2))
+print(paste("CV(RMSE) =", CVRMSE))
+```
+The $R^2$ has increased from 0.66 to 0.77 since we added the $\mathrm{MA}(1)$ regression coefficient, and the CV(RMSE) has decreased. This suggests that the model better explains the data's variance.
+
+### Savings
+
+We choose to skip the prediction plot and go straight to the savings estimate and its confidence bounds:
+
+```{r acf05, results='hold'}
+quantile(la$savings, probs=c(0.025, 0.1, 0.5, 0.9, 0.975))
 ```
 
+Compared to the results of [tutorial 2](#tuto2predictions), the mean estimated savings are similar, but the uncertainty is about 10% larger.
 
+### Residuals
 
-```{r}
-ggplot(data = df.pre.daily) +
-  geom_line(mapping = aes(x=Date, y=pred_med-E)) +
-  geom_ribbon(mapping = aes(x=Date, ymin=pred_low-E, ymax=pred_up-E), alpha=0.2)
+The whole point of this tutorial, compared to the previous one, is to reduce the autocorrelation of the prediction residuals, which would be a sign of a biased models and unreliable inferences. Have we succeded?
 
-```
-
-```{r}
-residuals <- colMeans(la$y_pre_pred) - df.pre.daily$E
-
-ggplot() +
-  geom_point(mapping = aes(x=residuals, y=lag(residuals, n=1, default=0)))
-
-ggplot() +
-  geom_point(mapping = aes(x=residuals, y=lag(residuals, n=2, default=0)))
-
+```{r tuto3corr1, fig.cap="Autocorrelation function of prediction residuals"}
 acf(residuals)
 ```
 
-ARIMA prediction intervals : see https://otexts.com/fpp2/arima-forecasting.html
+Every vertical line of this graph shows the correlation coefficient between the values of a series (here `residuals`) and its own values with a certain lag.
 
+The lag-1 ACF has been significantly reduced. The cause for the correlation between consecutive residuals has not been solved, but the model now "knows" that something unexplained is causing it: predictions were made more uncertain as a way to aknowledge it.
 
-$$
-\hat{\sigma}_h=\hat{\sigma}^2 \left[1+\sum_{i=1}^{h-1}\hat{\theta}_i^2\right]
-$$
+We can zoom in on the lag-1 autocorrelation by plotting residuals versus their own previous value:
 
+```{r tuto3corr2, fig.cap="Correlation of consecutive residuals"}
+ggplot() +
+  geom_point(mapping = aes(x=residuals, y=lag(residuals, n=1, default=0)))
+```
 
+There is no longer a visible trend on this scatter plot.
+
+However, we can notice on Fig. \@(fig:tuto3corr1) that some autocorrelation remains every 5 lags. Remember that since we filtered out week ends, each week of data comprises 5 measurements. Therefore, it looks like some weekly pattern has still not been properly captured.
+
+```{r tuto3corr3, fig.cap="Correlation of residuals with lag-5"}
+ggplot() +
+  geom_point(mapping = aes(x=residuals, y=lag(residuals, n=5, default=0)))
+```
+
+There is a trend here. We need to define a new model which includes regression terms for the lag-1 and lag-5 errors:
+
+\begin{align}
+y_n & = \alpha + \beta_{h}(\tau_{h}-x_n)^+ + \beta_{c}(x_n-\tau_{c})^+ + \theta_1 \varepsilon_{n-1} + \theta_5 \varepsilon_{n-5} + \varepsilon_n (\#eq:autocorr9) \\
+\varepsilon_n & \sim \mathrm{normal}\left(0, \sigma\right) (\#eq:autocorr10)
+\end{align}
+
+We leave this as an exercise for the reader!

@@ -14,5 +14,6 @@ rmd_files:
     "14-optCautocorr.Rmd",
     "21-optDbasics.Rmd",
     "22-optDcalibration.Rmd",
+    "60-references.Rmd"
     ]
     

@@ -70,11 +70,12 @@
 <li><a class="" href="back-bayes.html"><span class="header-section-number">2</span> Bayesian data analysis</a></li>
 <li class="book-part">Whole building M&amp;V: option C</li>
 <li><a class="" href="optClinreg.html"><span class="header-section-number">3</span> Tutorial 1: linear regression and introduction to Stan</a></li>
-<li><a class="" href="optCchangepoint.html"><span class="header-section-number">4</span> Tutorial 2: change-point model</a></li>
-<li><a class="" href="optCautocorr.html"><span class="header-section-number">5</span> Tutorial 3: autocorrelation</a></li>
+<li><a class="" href="optCchangepoint.html"><span class="header-section-number">4</span> Tutorial 2: increasing model complexity</a></li>
+<li><a class="" href="optCautocorr.html"><span class="header-section-number">5</span> Tutorial 3: correlated residuals</a></li>
 <li class="book-part">Option D</li>
-<li><a class="" href="optDbasics.html">Option D basics</a></li>
-<li><a class="" href="bayesian-calibration.html"><span class="header-section-number">6</span> Bayesian calibration</a></li>
+<li><a class="" href="optDbasics.html"><span class="header-section-number">6</span> Option D basics</a></li>
+<li><a class="" href="bayesian-calibration.html"><span class="header-section-number">7</span> Bayesian calibration</a></li>
+<li><a class="" href="references.html">References</a></li>
 </ul>
 
         <div class="book-extra">
@@ -151,7 +152,7 @@ where <span class="math inline">\(\varepsilon\)</span> denotes measurement error
 Figure 1.3: Errors and uncertainties on parameter estimation, caused by measurement and modelling errors
 </p>
 </div>
-<p>The Guide to the expression of Uncertainty in Measurement (GUM)(<span class="citation">JCGM (<a href="bayesian-calibration.html#ref-jcgm2008evaluation" role="doc-biblioref">2008</a>)</span>) then separates errors into a <strong>random</strong> component and a <strong>systematic</strong> component: systematic errors are errors which retain a non-zero mean if the measurement was repeated an infinite number of times under repeatability conditions. Systematic and random errors, whether they concern the measurement or the modelling procedures, will affect the estimation of a parameter <span class="math inline">\(\theta\)</span> in terms of <strong>accuracy</strong> and <strong>precision</strong>. The figure above illustrates accuracy and precision in the case of estimating a parameter value <span class="math inline">\(\theta\)</span>, but the exact same terminology can be used if the purpose of the trained model is to predict the future values of a variable <span class="math inline">\(y\)</span>.</p>
+<p>The Guide to the expression of Uncertainty in Measurement (GUM)(<span class="citation">JCGM (<a href="references.html#ref-jcgm2008evaluation" role="doc-biblioref">2008</a>)</span>) then separates errors into a <strong>random</strong> component and a <strong>systematic</strong> component: systematic errors are errors which retain a non-zero mean if the measurement was repeated an infinite number of times under repeatability conditions. Systematic and random errors, whether they concern the measurement or the modelling procedures, will affect the estimation of a parameter <span class="math inline">\(\theta\)</span> in terms of <strong>accuracy</strong> and <strong>precision</strong>. The figure above illustrates accuracy and precision in the case of estimating a parameter value <span class="math inline">\(\theta\)</span>, but the exact same terminology can be used if the purpose of the trained model is to predict the future values of a variable <span class="math inline">\(y\)</span>.</p>
 <ul>
 <li>The GUM defines <strong>uncertainty</strong> (of measurement) as the dispersion of the values that could reasonably be attributed to a measured quantity. Similarly, parameter estimates or model predictions come with an uncertainty, which quantifies their possible range of values caused by the random errors in the measurement and modelling processes. Precision is an indicator of low uncertainty, and can be conveyed by <strong>confidence intervals</strong>.</li>
 <li>On the other hand, accuracy is a measure of <strong>bias</strong>. It is the difference between the “true” value of the target variable and the mean of our estimation.</li>

@@ -7,7 +7,7 @@ This chapter only covers the basics of Bayesian inference, the motivation behind
 * [Statistical rethinking](https://xcelab.net/rm/statistical-rethinking/) is another vast Bayesian course spanning from theoretical fundamentals to practical examples.
 * [Michael Betancourt's extensive lectures](https://betanalpha.github.io/writing/) range from basics of probability theory to extremely detailed Bayesian workflow.
 
-## Motivation for a Bayesian M&V
+## Motivation for a Bayesian M&V {#motivation}
 
 Bayesian statistics are mentioned in the Annex B of the ASHRAE Guideline 14, after it has been observed that standard approaches make it difficult to estimate the savings uncertainty when complex models are required in a measurement and verification worflow:
 

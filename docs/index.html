@@ -70,11 +70,12 @@
 <li><a class="" href="back-bayes.html"><span class="header-section-number">2</span> Bayesian data analysis</a></li>
 <li class="book-part">Whole building M&amp;V: option C</li>
 <li><a class="" href="optClinreg.html"><span class="header-section-number">3</span> Tutorial 1: linear regression and introduction to Stan</a></li>
-<li><a class="" href="optCchangepoint.html"><span class="header-section-number">4</span> Tutorial 2: change-point model</a></li>
-<li><a class="" href="optCautocorr.html"><span class="header-section-number">5</span> Tutorial 3: autocorrelation</a></li>
+<li><a class="" href="optCchangepoint.html"><span class="header-section-number">4</span> Tutorial 2: increasing model complexity</a></li>
+<li><a class="" href="optCautocorr.html"><span class="header-section-number">5</span> Tutorial 3: correlated residuals</a></li>
 <li class="book-part">Option D</li>
-<li><a class="" href="optDbasics.html">Option D basics</a></li>
-<li><a class="" href="bayesian-calibration.html"><span class="header-section-number">6</span> Bayesian calibration</a></li>
+<li><a class="" href="optDbasics.html"><span class="header-section-number">6</span> Option D basics</a></li>
+<li><a class="" href="bayesian-calibration.html"><span class="header-section-number">7</span> Bayesian calibration</a></li>
+<li><a class="" href="references.html">References</a></li>
 </ul>
 
         <div class="book-extra">
@@ -86,7 +87,7 @@
 <h1>Welcome<a class="anchor" aria-label="anchor" href="#welcome"><i class="fas fa-link"></i></a>
 </h1>
 <p>This website promotes the use of Bayesian data analysis for building energy use monitoring, especially in the context of Measurement and Verification (M&amp;V) methods.</p>
-<p>The target audience of the book are energy experts who may only have a moderate background on statistics and applied mathematics. One of our main arguments for promoting Bayesian data analysis is that it is both universally applicable, and accessible. Our aim is to give all building energy practicioners the tools to accurately assess savings following energy conservation measures, along with their uncertainty.</p>
+<p>The target audience of the book are energy experts who may only have a moderate background on statistics and applied mathematics. One of our main arguments for promoting Bayesian data analysis is that it is both universally applicable, and accessible. Our aim is to give all building energy practicioners the tools to reliably assess savings following energy conservation measures, along with their uncertainty.</p>
 <p>This guide assumes that the reader already knows the core statistical concepts for M&amp;V: errors and uncertainty, regression basics, and model validation metrics. We will however emphasise some of these terms in order to illustrate the specifics of Bayesian methods.</p>
 <p>The <strong>first part</strong> of the website introduces the reader to the main concepts of <a href="back-mv.html#back-mv">measurement and verification</a>, and <a href="back-bayes.html#back-bayes">Bayesian data analysis</a>. The amount of theoretical background is voluntarily kept short in order to keep the focus on practical examples. References are included for readers who wish to learn more.</p>
 <p>The <strong>second part</strong> are tutorials on whole-building energy monitoring and M&amp;V, referred to as “Option C” in the IPMVP documentation. This series of three tutorials gradually illustrate the advantages of Bayesian data analysis for M&amp;V:</p>
@@ -107,16 +108,15 @@
 <a href="https://cran.rstudio.com/">Install R</a> and <a href="https://posit.co/">Rstudio</a>
 </li>
 <li>
-<a href="https://mc-stan.org/">Install Stan</a>. You can learn Stan basics here but here is a link to the full Stan documentation.</li>
+<a href="https://mc-stan.org/">Install Stan</a>.</li>
 </ul>
-<p>Additionally, if you wish to replicate the results shown in these tutorials, you may either download the full book from its repository and run the R markdown files matching the chapters; or only download the data sets and copy/paste the code in your own R files.</p>
-<p>We use R as the main programming language for all analyses, but all content is also adaptable to other environments the reader may be more familiar with: Python, Julia or Matlab. We mention these alternatives <a href="back-bayes.html#tools">here</a>.</p>
+<p>We use R and Stan for all analyses, but all content is also adaptable to other environments the reader may be more familiar with: Python, Julia or Matlab. We mention these alternatives <a href="back-bayes.html#tools">here</a>.</p>
+<p>Additionally, if you wish to replicate the results shown in these tutorials, you may either download the full book from <a href="https://github.com/srouchier/bayesmv">its repository</a> and run the R markdown files matching the chapters; or only download the data sets and copy/paste the code in your own R files.</p>
 </div>
 <div id="about" class="section level2 unnumbered">
 <h2>About<a class="anchor" aria-label="anchor" href="#about"><i class="fas fa-link"></i></a>
 </h2>
 <p>I am <a href="https://srouchier.github.io/">Simon Rouchier</a>, lecturer at the <a href="https://www.univ-smb.fr/">Université Savoie Mont Blanc</a>, Chambéry, France.</p>
-<p>This website is the beta version of a future book. It possibly still has some typos and inconsistencies: I welcome all feedback by <a href="https://srouchier.github.io/">email</a> or through the book’s <a href="https://github.com/srouchier/buildingenergygeeks">Github repo</a>.</p>
 <p><a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Licence Creative Commons" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png"></a><br>Ce(tte) œuvre est mise à disposition selon les termes de la <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Licence Creative Commons Attribution - Pas d’Utilisation Commerciale - Partage dans les Mêmes Conditions 4.0 International</a>.</p>
 
 </div>

@@ -1,5 +1,5 @@
 # (PART) Option D {.unnumbered}
 
-# Option D basics {#optDbasics .unnumbered}
+# Option D basics {#optDbasics}
 
-Just the essentials. 
+The guide will extend to IPMVP Option D in the near future. This page is still under construction.

@@ -70,11 +70,12 @@
 <li><a class="active" href="back-bayes.html"><span class="header-section-number">2</span> Bayesian data analysis</a></li>
 <li class="book-part">Whole building M&amp;V: option C</li>
 <li><a class="" href="optClinreg.html"><span class="header-section-number">3</span> Tutorial 1: linear regression and introduction to Stan</a></li>
-<li><a class="" href="optCchangepoint.html"><span class="header-section-number">4</span> Tutorial 2: change-point model</a></li>
-<li><a class="" href="optCautocorr.html"><span class="header-section-number">5</span> Tutorial 3: autocorrelation</a></li>
+<li><a class="" href="optCchangepoint.html"><span class="header-section-number">4</span> Tutorial 2: increasing model complexity</a></li>
+<li><a class="" href="optCautocorr.html"><span class="header-section-number">5</span> Tutorial 3: correlated residuals</a></li>
 <li class="book-part">Option D</li>
-<li><a class="" href="optDbasics.html">Option D basics</a></li>
-<li><a class="" href="bayesian-calibration.html"><span class="header-section-number">6</span> Bayesian calibration</a></li>
+<li><a class="" href="optDbasics.html"><span class="header-section-number">6</span> Option D basics</a></li>
+<li><a class="" href="bayesian-calibration.html"><span class="header-section-number">7</span> Bayesian calibration</a></li>
+<li><a class="" href="references.html">References</a></li>
 </ul>
 
         <div class="book-extra">
@@ -97,18 +98,18 @@
 <li>
 <a href="https://betanalpha.github.io/writing/">Michael Betancourt’s extensive lectures</a> range from basics of probability theory to extremely detailed Bayesian workflow.</li>
 </ul>
-<div id="motivation-for-a-bayesian-mv" class="section level2" number="2.1">
+<div id="motivation" class="section level2" number="2.1">
 <h2>
-<span class="header-section-number">2.1</span> Motivation for a Bayesian M&amp;V<a class="anchor" aria-label="anchor" href="#motivation-for-a-bayesian-mv"><i class="fas fa-link"></i></a>
+<span class="header-section-number">2.1</span> Motivation for a Bayesian M&amp;V<a class="anchor" aria-label="anchor" href="#motivation"><i class="fas fa-link"></i></a>
 </h2>
 <p>Bayesian statistics are mentioned in the Annex B of the ASHRAE Guideline 14, after it has been observed that standard approaches make it difficult to estimate the savings uncertainty when complex models are required in a measurement and verification worflow:</p>
 <p><em>“Savings uncertainty can only be determined exactly when energy use is a linear function of some independent variable(s). For more complicated models of energy use, such as changepoint models, and for data with serially autocorrelated errors, approximate formulas must be used. These approximations provide reasonable accuracy when compared with simulated data, but in general it is difficult to determine their accuracy in any given situation. One alternative method for determining savings uncertainty to any desired degree of accuracy is to use a Bayesian approach.”</em></p>
-<p>Still on the topic of measurement and verification, and the estimation of savings uncertainty, several advantages and drawbacks of Bayesian approaches are described by (<span class="citation">Carstens, Xia, and Yadavalli (<a href="bayesian-calibration.html#ref-carstens2018bayesian" role="doc-biblioref">2018</a>)</span>). Advantages include:</p>
+<p>Still on the topic of measurement and verification, and the estimation of savings uncertainty, several advantages and drawbacks of Bayesian approaches are described by (<span class="citation">Carstens, Xia, and Yadavalli (<a href="references.html#ref-carstens2018bayesian" role="doc-biblioref">2018</a>)</span>). Advantages include:</p>
 <ul>
 <li>Because Bayesian models are probabilistic, uncertainty is automatically and exactly quantified. Confidence intervals can be interpreted in the way most people understand them: degrees of belief about the value of the parameter.</li>
 <li>Bayesian models are more universal and flexible than standard methods. Models are also modular and can be designed to suit the problem. For example, it is no different to create terms for serial correlation, or heteroscedasticity (non-constant variance) than it is to specify an ordinary linear model.</li>
 <li>The Bayesian approach allows for the incorporation of prior information where appropriate.</li>
-<li>When the savings need to be calculated for “normalised conditions”, for example, a “typical meteorological year”, rather than the conditions during the post-retrofit monitoring period, it is not possible to quantify uncertainty using current methods. However, (<span class="citation">Shonder and Im (<a href="bayesian-calibration.html#ref-shonder2012bayesian" role="doc-biblioref">2012</a>)</span>) have shown that it can be naturally and easily quantified using the Bayesian approach.</li>
+<li>When the savings need to be calculated for “normalised conditions”, for example, a “typical meteorological year”, rather than the conditions during the post-retrofit monitoring period, it is not possible to quantify uncertainty using current methods. However, (<span class="citation">Shonder and Im (<a href="references.html#ref-shonder2012bayesian" role="doc-biblioref">2012</a>)</span>) have shown that it can be naturally and easily quantified using the Bayesian approach.</li>
 </ul>
 <p>The first two points above are the most relevant to a data analyst: any arbitrary model structure can be defined to explain the data, and the exact same set of formulas can then be used to obtain any uncertainty after the models have been fitted.</p>
 </div>
@@ -157,7 +158,7 @@ p\left(\tilde{y}|y\right) = \int p\left(\tilde{y}|\theta\right) p\left(\theta|y\
 </h3>
 <p>As was mentioned in Sec. <a href="back-mv.html#back-stats">1.3</a>, inverse problems are all but trivial. It is possible that the available data is simply insufficient to bring useful inferences, but that we still try to train an unsuitable model with it. Statistical analysts need the right tools to guide model selection and training, and to warn them when there is a risk of biased inferences and predictions.</p>
 <p>This chapter is an attempt to summarize the essential points of a Bayesian workflow from a building energy perspective. Frequentist inference is also mentioned, but as a particular case of Bayesian inference.</p>
-<p>Gelman et al. (<span class="citation">Gelman et al. (<a href="bayesian-calibration.html#ref-gelman2013bayesian" role="doc-biblioref">2013</a>)</span>) divide the process of Bayesian data analysis into three steps illustrated by Fig. <a href="back-bayes.html#fig:workflowonemodel">2.2</a>:</p>
+<p>Gelman et al. (<span class="citation">Gelman et al. (<a href="references.html#ref-gelman2013bayesian" role="doc-biblioref">2013</a>)</span>) divide the process of Bayesian data analysis into three steps illustrated by Fig. <a href="back-bayes.html#fig:workflowonemodel">2.2</a>:</p>
 <ol style="list-style-type: decimal">
 <li>Setting up a full probability model;</li>
 <li>Conditioning on observed data (learning);</li>
@@ -193,7 +194,7 @@ Figure 2.2: A workflow for the proper specification and training of one model. M
     p(y|\theta) = \int p(y,z|\theta) \mathrm{d}z
     \tag{2.6}
 \end{equation}\]</span></p>
-<p>The IPMVP option D relies on the use of calibrated building energy simulation (BES) models. These models are described by a much larger number of parameters and equations that the simple regression models typically used for other IPMVP options. In this context, it is not feasible to fully describe BES models in the form of a simple likelihood function <span class="math inline">\(p(y|\theta)\)</span>. In order to apply Bayesian uncertainty analysis to a BES model, it is possible to first approximate it with a Gaussian process (GP) model emulator. This process is denoted Bayesian calibration and was based on the seminal work of Kennedy and O’Hagan (<span class="citation">Kennedy and O’Hagan (<a href="bayesian-calibration.html#ref-kennedy2001bayesian" role="doc-biblioref">2001</a>)</span>). As opposed to the manual adjustment of building energy model parameters, Bayesian calibration explicitly quantifies uncertainties in calibration parameters, discrepancies between model predictions and observed values, as well as observation errors (<span class="citation">Chong and Menberg (<a href="bayesian-calibration.html#ref-chong2018guidelines" role="doc-biblioref">2018</a>)</span>).</p>
+<p>The IPMVP option D relies on the use of calibrated building energy simulation (BES) models. These models are described by a much larger number of parameters and equations that the simple regression models typically used for other IPMVP options. In this context, it is not feasible to fully describe BES models in the form of a simple likelihood function <span class="math inline">\(p(y|\theta)\)</span>. In order to apply Bayesian uncertainty analysis to a BES model, it is possible to first approximate it with a Gaussian process (GP) model emulator. This process is denoted Bayesian calibration and was based on the seminal work of Kennedy and O’Hagan (<span class="citation">Kennedy and O’Hagan (<a href="references.html#ref-kennedy2001bayesian" role="doc-biblioref">2001</a>)</span>). As opposed to the manual adjustment of building energy model parameters, Bayesian calibration explicitly quantifies uncertainties in calibration parameters, discrepancies between model predictions and observed values, as well as observation errors (<span class="citation">Chong and Menberg (<a href="references.html#ref-chong2018guidelines" role="doc-biblioref">2018</a>)</span>).</p>
 </div>
 <div id="priorpredictivechecking" class="section level3" number="2.3.3">
 <h3>
@@ -222,14 +223,14 @@ p\left(y\right) = \int p\left(y|\theta\right) p\left(\theta\right) \mathrm{d}\th
     \tag{2.10}
 \end{equation}\]</span>
 where each draw <span class="math inline">\(\theta^{(s)}\)</span> contains a value for each of the parameters of the model.</p>
-<p>This guide does not aim at explaining MCMC algorithms and their characteristics, but we may refer to <a href="https://arxiv.org/abs/1701.02434">this paper</a> (<span class="citation">Betancourt (<a href="bayesian-calibration.html#ref-betancourt2017conceptual" role="doc-biblioref">2017</a>)</span>) for a description of the state-of-the-art Hamiltonian Monte Carlo alogrithm.</p>
+<p>This guide does not aim at explaining MCMC algorithms and their characteristics, but we may refer to <a href="https://arxiv.org/abs/1701.02434">this paper</a> (<span class="citation">Betancourt (<a href="references.html#ref-betancourt2017conceptual" role="doc-biblioref">2017</a>)</span>) for a description of the state-of-the-art Hamiltonian Monte Carlo alogrithm.</p>
 <p>Posterior expectation values can be accurately estimated by Monte Carlo estimator. Based on exact independent random samples from the posterior distribution <span class="math inline">\(\left(\theta^{(1)},...,\theta^{(S)}\right) \sim p(\theta | y)\)</span>, the expectation of any function <span class="math inline">\(f(\theta)\)</span> can be estimated with
 <span class="math display" id="eq:workflow11">\[\begin{equation}
     \mathbb{E}[f(\theta)] \approx
     \frac{1}{N} \sum_{n=1}^{N} f(\theta)^{(n)}
 \tag{2.11}
 \end{equation}\]</span></p>
-<p>Markov Chain Monte Carlo estimators converge to the true expectation values as the number of draws approaches infinity. In practice, diagnostics must be applied to check that the estimator follows the central limit theorem, which ensures that the estimator is unbiased after a finite number of draws. For that purpose it is first recommended to compute the (split-)<span class="math inline">\(\hat{R}\)</span> statistic, or Gelman-Rubin statistic, with multiple chains initialized at different initial positions and split into two halves (<span class="citation">Gelman et al. (<a href="bayesian-calibration.html#ref-gelman2013bayesian" role="doc-biblioref">2013</a>)</span>). The <span class="math inline">\(\hat{R}\)</span> statistic measures for each scalar parameter, <span class="math inline">\(\theta\)</span>, the ratio of samples variance within each chain <span class="math inline">\(W\)</span> to the sample variance of all combined chains <span class="math inline">\(B\)</span>,</p>
+<p>Markov Chain Monte Carlo estimators converge to the true expectation values as the number of draws approaches infinity. In practice, diagnostics must be applied to check that the estimator follows the central limit theorem, which ensures that the estimator is unbiased after a finite number of draws. For that purpose it is first recommended to compute the (split-)<span class="math inline">\(\hat{R}\)</span> statistic, or Gelman-Rubin statistic, with multiple chains initialized at different initial positions and split into two halves (<span class="citation">Gelman et al. (<a href="references.html#ref-gelman2013bayesian" role="doc-biblioref">2013</a>)</span>). The <span class="math inline">\(\hat{R}\)</span> statistic measures for each scalar parameter, <span class="math inline">\(\theta\)</span>, the ratio of samples variance within each chain <span class="math inline">\(W\)</span> to the sample variance of all combined chains <span class="math inline">\(B\)</span>,</p>
 <p><span class="math display" id="eq:workflow12">\[\begin{equation}
     \hat{R} = \sqrt{\frac{1}{W} \left(\frac{N-1}{N}W + \frac{1}{N}B \right)}
     \tag{2.12}
@@ -241,7 +242,7 @@ where each draw <span class="math inline">\(\theta^{(s)}\)</span> contains a val
     \tag{2.13}
 \end{equation}\]</span></p>
 <p>with <span class="math inline">\(\rho_l\)</span> the lag-<span class="math inline">\(l\)</span> autocorrelation of a function <span class="math inline">\(f\)</span> over the history of the Markov chain. The effective sample size is an estimate of the number of independent samples from the posterior distribution.</p>
-<p>The diagnostic tools introduced in this section provide a principled workflow for reliable Bayesian inferences. They are readily available in most Bayesian computation libraries. Based on the recent improvements to the <span class="math inline">\(\hat{R}\)</span> statistic (<span class="citation">Vehtari et al. (<a href="bayesian-calibration.html#ref-vehtari2021rank" role="doc-biblioref">2021</a>)</span>), it is recommended to use the samples only if <span class="math inline">\(\hat{R} &lt; 1.01\)</span> and <span class="math inline">\(\text{ESS} &gt; 400\)</span>.</p>
+<p>The diagnostic tools introduced in this section provide a principled workflow for reliable Bayesian inferences. They are readily available in most Bayesian computation libraries. Based on the recent improvements to the <span class="math inline">\(\hat{R}\)</span> statistic (<span class="citation">Vehtari et al. (<a href="references.html#ref-vehtari2021rank" role="doc-biblioref">2021</a>)</span>), it is recommended to use the samples only if <span class="math inline">\(\hat{R} &lt; 1.01\)</span> and <span class="math inline">\(\text{ESS} &gt; 400\)</span>.</p>
 </div>
 <div id="modelvalidation" class="section level3" number="2.3.5">
 <h3>
@@ -286,7 +287,7 @@ This set of model outputs approximates the posterior probability distribution.</
 \tag{2.18}
 \end{equation}\]</span></p>
 <ul>
-<li>Coverage Width-based Criterion (CWC) (<span class="citation">Chong, Augenbroe, and Yan (<a href="bayesian-calibration.html#ref-chong2021occupancy" role="doc-biblioref">2021</a>)</span>), an indicator for probabilistic forecasts which measures the quality of the predictions based on both their accuracy and precision.</li>
+<li>Coverage Width-based Criterion (CWC) (<span class="citation">Chong, Augenbroe, and Yan (<a href="references.html#ref-chong2021occupancy" role="doc-biblioref">2021</a>)</span>), an indicator for probabilistic forecasts which measures the quality of the predictions based on both their accuracy and precision.</li>
 </ul>
 <p>The <span class="math inline">\(R^2\)</span> and CV-RMSE indices are too often treated as validation metrics. If they are calculated using a test data set, they can indeed estimate the model predictive ability outside of the training data set. They however do not ensure that the model correctly captures the data generating process: this is what residual analysis is for.</p>
 <ul>
@@ -297,7 +298,7 @@ This set of model outputs approximates the posterior probability distribution.</
     r_i = y_i - \left( \hat{\theta}_0 + \hat{\theta}_1 X_{i,1} + \hat{\theta}_2 X_{i,2} \right) \sim N(0,\sigma)
     \tag{2.19}
 \end{equation}\]</span>
-where <span class="math inline">\(r_i\)</span> are the prediction <strong>residuals</strong>. Residual analysis is the process of checking the validity of their four hypotheses (independence, identical distribution, zero mean, constant variance), and the main step of model validation. It allows identifying problems that may arise after fitting a regression model (<span class="citation">James et al. (<a href="bayesian-calibration.html#ref-james2013introduction" role="doc-biblioref">2013</a>)</span>), among which: correlation of error terms, outliers, high leverage points, colinearity…</p>
+where <span class="math inline">\(r_i\)</span> are the prediction <strong>residuals</strong>. Residual analysis is the process of checking the validity of their four hypotheses (independence, identical distribution, zero mean, constant variance), and the main step of model validation. It allows identifying problems that may arise after fitting a regression model (<span class="citation">James et al. (<a href="references.html#ref-james2013introduction" role="doc-biblioref">2013</a>)</span>), among which: correlation of error terms, outliers, high leverage points, colinearity…</p>
 <div class="figure">
 <span style="display:block;" id="fig:residuals"></span>
 <img src="figures/residuals.png" alt="Example of residual plots after an ordinary linear regression in R: fitted vs residuals, Q-Q plot, scale location and residuals vs leverage" width="100%"><p class="caption">
@@ -317,7 +318,7 @@ Figure 2.3: Example of residual plots after an ordinary linear regression in R: 
 Figure 2.4: Autocorrelation function (top) and cumulated periodogram (bottom) of an insufficient model (left) and a sufficient model (right)
 </p>
 </div>
-<p>Most importantly, the correlation among the error terms should be checked. The autocorrelation function (ACF) checks the independence of residuals and may reveal lag dependencies which suggest influences that the model does not properly take into account. This is particularly important for time series models, and therefore well explained the time series litterature (<span class="citation">Shumway and Stoffer (<a href="bayesian-calibration.html#ref-shumway2000time" role="doc-biblioref">2000</a>)</span>). Alternatively, the Durbin-Watson test quantitatively checks for autocorrelation in regression models. “If there is correlation among the error terms, then the estimated standard errors will tend to underestimate to true standard errors. As a result, confidence and prediction intervals will be narrower than they should be.”(<span class="citation">James et al. (<a href="bayesian-calibration.html#ref-james2013introduction" role="doc-biblioref">2013</a>)</span>)</p>
+<p>Most importantly, the correlation among the error terms should be checked. The autocorrelation function (ACF) checks the independence of residuals and may reveal lag dependencies which suggest influences that the model does not properly take into account. This is particularly important for time series models, and therefore well explained the time series litterature (<span class="citation">Shumway and Stoffer (<a href="references.html#ref-shumway2000time" role="doc-biblioref">2000</a>)</span>). Alternatively, the Durbin-Watson test quantitatively checks for autocorrelation in regression models. “If there is correlation among the error terms, then the estimated standard errors will tend to underestimate to true standard errors. As a result, confidence and prediction intervals will be narrower than they should be.”(<span class="citation">James et al. (<a href="references.html#ref-james2013introduction" role="doc-biblioref">2013</a>)</span>)</p>
 <p>If residuals display unequal variances or correlations, then the inferences and predictions of the fitted model should not be used. The model should be modified and re-trained according to the practitioner’s expertise and diagnostics of the analysis: additional explanatory variables can be included if possible.</p>
 </div>
 </div>
@@ -388,7 +389,7 @@ Figure 2.5: Estimation of savings with uncertainty in an avoided consumption wor
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
 <li><a class="nav-link" href="#back-bayes"><span class="header-section-number">2</span> Bayesian data analysis</a></li>
-<li><a class="nav-link" href="#motivation-for-a-bayesian-mv"><span class="header-section-number">2.1</span> Motivation for a Bayesian M&amp;V</a></li>
+<li><a class="nav-link" href="#motivation"><span class="header-section-number">2.1</span> Motivation for a Bayesian M&amp;V</a></li>
 <li><a class="nav-link" href="#bayesian-inference-in-theory"><span class="header-section-number">2.2</span> Bayesian inference in theory</a></li>
 <li>
 <a class="nav-link" href="#a-bayesian-data-analysis-workflow"><span class="header-section-number">2.3</span> A Bayesian data analysis workflow</a><ul class="nav navbar-nav">
