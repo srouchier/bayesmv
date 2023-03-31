@@ -94,7 +94,7 @@ This model has 6 possible parameters: a constant term $\alpha$, two slopes $\bet
 
 ### Model specification with Stan
 
-The Stan code for the full model is written in a separate file `changepoint.stan`. We only show some parts of it here. See [Tutorial 1](#optClinreg) for a quick introduction on the components of a Stan model.
+The Stan code for the full model is written [in a separate file `changepoint.stan`](https://github.com/srouchier/bayesmv/blob/main/models/changepoint.stan). We only show some parts of it here. See [Tutorial 1](#optClinreg) for a quick introduction on the components of a Stan model.
 
 The names of data variables and parameters are declared in the `data` and `parameter` blocks which we don't show here. These names should be clear from the above specification of the model. Here is the `model` block:
 

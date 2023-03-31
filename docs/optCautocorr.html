@@ -164,7 +164,7 @@ y_t = f(x_t) + \theta_1 \varepsilon_{t-1} + \dots + \theta_Q \varepsilon_{t-Q} +
 y_n &amp; = \alpha + \beta_{h}(\tau_{h}-x_n)^+ + \beta_{c}(x_n-\tau_{c})^+ + \theta_1 \varepsilon_{n-1} + \varepsilon_n \tag{5.5} \\
 \varepsilon_n &amp; \sim \mathrm{normal}\left(0, \sigma\right) \tag{5.6}
 \end{align}\]</span></p>
-<p>The Stan code for this model is in a separate file <code>changepoint_ma1.stan</code>, and is more complicated than the original.</p>
+<p>The Stan code for this model is <a href="https://github.com/srouchier/bayesmv/blob/main/models/changepoint_ma1.stan">in a separate file <code>changepoint_ma1.stan</code></a>, and is more complicated than the original.</p>
 <p>Firstly, there is a new block called <code>transformed parameters</code>, between <code>parameters</code> and <code>model</code>, which calculates the main terms of Eq. <a href="optCautocorr.html#eq:autocorr5">(5.5)</a> so that the model itself is written concisely.</p>
 <ul>
 <li>

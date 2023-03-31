@@ -86,7 +86,7 @@ y_n & = \alpha + \beta_{h}(\tau_{h}-x_n)^+ + \beta_{c}(x_n-\tau_{c})^+ + \theta_
 \varepsilon_n & \sim \mathrm{normal}\left(0, \sigma\right) (\#eq:autocorr6)
 \end{align}
 
-The Stan code for this model is in a separate file `changepoint_ma1.stan`, and is more complicated than the original.
+The Stan code for this model is [in a separate file `changepoint_ma1.stan`](https://github.com/srouchier/bayesmv/blob/main/models/changepoint_ma1.stan), and is more complicated than the original.
 
 Firstly, there is a new block called `transformed parameters`, between `parameters` and `model`, which calculates the main terms of Eq. \@ref(eq:autocorr5) so that the model itself is written concisely.
 

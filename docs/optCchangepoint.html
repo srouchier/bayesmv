@@ -199,7 +199,7 @@ y_n &amp; = \alpha + \beta_{h}(\tau_{h}-x_n)^+ + \beta_{c}(x_n-\tau_{c})^+ + \va
 <h3>
 <span class="header-section-number">4.2.2</span> Model specification with Stan<a class="anchor" aria-label="anchor" href="#model-specification-with-stan"><i class="fas fa-link"></i></a>
 </h3>
-<p>The Stan code for the full model is written in a separate file <code>changepoint.stan</code>. We only show some parts of it here. See <a href="optClinreg.html#optClinreg">Tutorial 1</a> for a quick introduction on the components of a Stan model.</p>
+<p>The Stan code for the full model is written <a href="https://github.com/srouchier/bayesmv/blob/main/models/changepoint.stan">in a separate file <code>changepoint.stan</code></a>. We only show some parts of it here. See <a href="optClinreg.html#optClinreg">Tutorial 1</a> for a quick introduction on the components of a Stan model.</p>
 <p>The names of data variables and parameters are declared in the <code>data</code> and <code>parameter</code> blocks which we don’t show here. These names should be clear from the above specification of the model. Here is the <code>model</code> block:</p>
 <pre><code>model {
   // Assigning prior distributions on some parameters
