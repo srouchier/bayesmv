@@ -180,12 +180,13 @@ fit <- stan(
   iter = 4000,              # total number of iterations per chain
   cores = 2,                # number of cores (could use one per chain)
   refresh = 0,              # progress not shown
+  seed = 123
 )
 ```
 
 We notice that convergence may be more difficult due to the added $\theta$ parameter: the model knows that something "more uncertain" is happening and some local optima may disturb the traces. In order to help convergence, we had to narrow down the prior distributions, and to increase the warmup and iteration numbers copiously.
 
-## Results
+## Results from the MA(1) model
 
 ### First look at results
 
@@ -217,7 +218,7 @@ CVRMSE <- sqrt(ssres / nrow(df.pre.day)) / mean(df.pre.day$E)
 print(paste("R2 =", R2))
 print(paste("CV(RMSE) =", CVRMSE))
 ```
-The $R^2$ has increased from 0.66 to 0.77 since we added the $\mathrm{MA}(1)$ regression coefficient, and the CV(RMSE) has decreased. This suggests that the model better explains the data's variance.
+The $R^2$ has increased from 0.66 to 0.78 since we added the $\mathrm{MA}(1)$ regression coefficient, and the CV(RMSE) has decreased. This suggests that the model better explains the data's variance.
 
 ### Savings
 
@@ -257,11 +258,69 @@ ggplot() +
   geom_point(mapping = aes(x=residuals, y=lag(residuals, n=5, default=0)))
 ```
 
-There is a trend here. We need to define a new model which includes regression terms for the lag-1 and lag-5 errors:
+There is a trend here. We need to define a new model which includes regression terms for the lag-1 and lag-5 errors.
+
+## New model: MA(5)
+
+### Even more uncertainty
+
+Fig. \@(fig:tuto3corr1) suggests that our MA(1) change-point model still shows some autocorrelation after fitting, especially at lags 2 and 5. We are therefore tempted to extend it so that lag-5 residuals are predictors of the outcome variable $y$:
 
 \begin{align}
 y_n & = \alpha + \beta_{h}(\tau_{h}-x_n)^+ + \beta_{c}(x_n-\tau_{c})^+ + \theta_1 \varepsilon_{n-1} + \theta_5 \varepsilon_{n-5} + \varepsilon_n (\#eq:autocorr9) \\
 \varepsilon_n & \sim \mathrm{normal}\left(0, \sigma\right) (\#eq:autocorr10)
 \end{align}
 
-We leave this as an exercise for the reader!
+As we already stated, by doing so, we are not making the physical model $f(x)=\alpha + \beta_{h}(\tau_{h}-x)^+ + \beta_{c}(x-\tau_{c})^+$ more complex. We are accounting for the fact that it does not completely explain the data on its own: $y$ is explained by $f$ *plus* something else. We can expect inferences from such a model to be more uncertain, but more reliable.
+
+We call this model MA(5) because it is a fifth order moving average model, but we are not using all residuals up to lag 5; only lags 1 and 5. The Stan code for this model is [in a separate file `changepoint_ma15.stan`](https://github.com/srouchier/bayesmv/blob/main/models/changepoint_ma15.stan), and is very similar to the previous model, MA(1).
+
+The MA(5) model uses the same data as the MA(1) model we just fitted, so all we have to do is:
+
+```{r}
+# Fitting the model
+fit15 <- stan(
+  file = 'models/changepoint_ma15.stan',  # Stan program
+  data = model_data,        # named list of data
+  chains = 4,               # number of Markov chains
+  warmup = 3000,            # number of warmup iterations per chain
+  iter = 4000,              # total number of iterations per chain
+  cores = 2,                # number of cores (could use one per chain)
+  refresh = 0,              # progress not shown
+  control = list(max_treedepth = 12),
+  seed = 5678,
+)
+```
+
+You may notice some differences with the previous time we called the `stan()` function. This is because the MA(5) turned out to be much less identifiable than expected, and some precautions were required to reach convergence of all chains.
+
+* Priors were included in [the model itself](https://github.com/srouchier/bayesmv/blob/main/models/changepoint_ma15.stan)
+* `control = list(max_treedepth = 12)` increases the maximum tree depth. It is mostly [an efficiency measure](https://mc-stan.org/misc/warnings.html).
+* `seed` lets us specify the seed of the MCMC algorithm. I used it here because many attempts did not converge (non-matching chains), and I want to be able to show reproducible results on this page.
+
+### Results
+
+After fitting, let's find out if this new model is more reliable than the previous ones. The first model checking metric is the $R^2$ coefficient:
+
+```{r}
+la15 <- rstan::extract(fit15, permuted = TRUE) # all posterior variables
+predict.mean <- colMeans(la15$y_pre_pred)     # mean prediction
+residuals <- predict.mean - df.pre.day$E      # residuals
+ssres <- sum(residuals^2)                     # sum of squared residuals
+sstot <- sum((df.pre.day$E-mean(df.pre.day$E))^2) # total sum of squares
+R2 <- 1 - ssres / sstot   # coefficient of determination
+print(paste("R2 =", R2))
+```
+The $R^2$ is now 0.84, which is significantly better than the original change-point model (0.66) and even the MA(1) model (0.78).
+
+Now let's look at the autocorrelation function of residuals:
+
+```{r}
+acf(residuals)
+```
+The ACF is now low enough for almost all lags. These metrics are reassuring: there is a good chance that we may trust the inferences from our fitted model. We can therefore proudly display our savings estimates, and their confidence bounds:
+
+```{r}
+quantile(la15$savings, probs=c(0.025, 0.1, 0.5, 0.9, 0.975))
+```
+The 95% confidence interval of savings is now over 50% larger than from the MA(1) model, and nearly 80% larger than the original change-point model. This may sound like bad news, but it is more nuanced: this is the first model with completely reassuring model checking metrics. We can be much more confident that the real value of savings lies within these bounds.

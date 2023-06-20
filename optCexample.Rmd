@@ -1,0 +1,244 @@
+---
+title: 'Option C example: Bayesian analysis with monthly data'
+output:
+  html_document:
+    df_print: paged
+---
+
+This example uses the data in the file `Option C - Data Set - Different Analysis.xlsx`
+
+I'm estimating savings with a Bayesian method and two models: ordinary linear regression, and change-point model.
+
+# Data
+
+Let's load the data first
+
+```{r}
+library(rstan)
+library(tidyverse)
+library(readxl)
+
+# Reading data
+df <- read_excel("data/Option C - Data Set - Different Analysis.xlsx") %>%
+  transmute(E = `Energy Consumption (kWh)`, T = (`Temp (degrees F)`-32)/1.8)
+
+# Labeling data points as "pre" or "post"
+df$period <- c( rep("pre", 12), rep("post", 12) )
+
+# Plotting the data
+ggplot(data = df, aes(x=T, y=E, color=period)) +
+  geom_point()
+
+```
+
+It looks like a linear regression model could work, but it doesn't look like there is a slope at higher temperatures. A change-point model with a baseline consumption and a heating mode might be better: we will try both.
+
+# Model 1: linear regression
+
+For more detail on the Bayesian implementation of linear regression, see my handbook: https://srouchier.github.io/bayesmv/optClinreg.html
+
+This is the Stan model. It looks complicated because it already includes the `generated quantities` block which handles posterior calculations.
+
+```{r}
+linearregression <- "
+data {
+// Baseline data (pre)
+  int<lower=0> N;     // number of data items
+  vector[N] x;     // predictor matrix
+  vector[N] y;        // outcome vector
+// Reporting period data (post)
+  int<lower=0> N_post;  // number of data items
+  vector[N] x_post;     // predictor matrix
+  vector[N] y_post;        // outcome vector
+}
+parameters {
+  real alpha;           // intercept
+  real beta;       // coefficients for predictors
+  real<lower=0> sigma;  // error scale
+ }
+model {
+  y ~ normal(alpha + x * beta, sigma);  // likelihood
+}
+generated quantities {
+  vector[N] predict_pre;
+  vector[N_post] predict_post;
+  real savings = 0;
+  
+  for (n in 1:N) {
+    predict_pre[n] = normal_rng(x[n] * beta + alpha, sigma);
+    }
+  
+  for (n in 1:N_post) {
+    predict_post[n] = normal_rng(x_post[n] * beta + alpha, sigma);
+    savings += predict_post[n] - y_post[n];
+  }
+}
+"
+```
+
+
+And this is where the model is trained
+
+```{r}
+data_list <- list(N = 12,
+                  x = df$T[1:12],
+                  y = df$E[1:12],
+                  N_post = 12,
+                  x_post = df$T[13:24],
+                  y_post = df$E[13:24])
+
+fit <- stan(model_code = linearregression, data = data_list, refresh = 0)
+```
+
+The results:
+
+```{r}
+print(fit, pars=c("alpha", "beta", "sigma", "savings"), probs=c(.025,.5,.975))
+```
+
+The `savings` variable shows the posterior distribution of the energy savings during the "post" period, as estimated by the trained model. They have a mean value of 89411 kWh, and 95% confidence intervals between 36809 kWh and 141279 kWh.
+
+Model checking: the following block plots the data overlapped with the model prediction during the "pre" period.
+
+```{r}
+la <- rstan::extract(fit, permuted = TRUE)
+
+# Model predictions during the "pre" period
+predict.pre <- apply(la$predict_pre, 2, quantile, probs=c(0.025, 0.5, 0.975))
+
+# A plot with everything in it
+ggplot() +
+  geom_point(mapping = aes(x = df$T, y = df$E, color=df$period)) +
+  geom_line(mapping = aes(x = df$T[1:12], y = predict.pre[2,]), color='blue') +
+  geom_ribbon(mapping = aes(x = df$T[1:12], ymin=predict.pre[1,], ymax=predict.pre[3,]), fill='blue', alpha=0.1)
+  labs(x = "Temperature (C)", y="Energy use (kWh)")
+```
+
+A quick residual analysis, although there isn't much to see with so little data points:
+
+```{r}
+residuals.pre <- colMeans(la$predict_pre) - df$E[1:12]        # residuals
+residuals.post <- colMeans(la$predict_post) - df$E[13:24]        # residuals
+
+acf(residuals.pre)
+```
+
+# Model 2: change-point
+
+The linear regression model works, but the uncertainty of savings is quite high. Maybe we can narrow it down by a slightly more complex model.
+
+\begin{align}
+y_n & = \alpha + \beta_{h}(\tau_{h}-x_n)^+ + \varepsilon_n (\#eq:cp1) \\
+\varepsilon_n & \sim \mathrm{normal}\left(0, \sigma\right) (\#eq:cp2)
+\end{align}
+
+Again, once implemented in Stan, the model looks much more complicated than it actually is.
+
+```{r}
+changepoint <- "
+data {
+  // This block declares all data which will be passed to the Stan model.
+  // Pre period
+  int<lower=0> N_pre;       // number of data items
+  vector[N_pre] x_pre;      // outdoor temperature
+  vector[N_pre] y_pre;      // outcome energy vector
+  // Post period
+  int<lower=0> N_post;        // number of data items
+  vector[N_post] x_post;      // outdoor temperature
+  vector[N_post] y_post;      // outcome energy vector
+}
+parameters {
+  // This block declares the parameters of the model.
+  real alpha;      // baseline consumption
+  real beta_h;     // slope for heating
+  real tau_h;      // threshold temperature for heating
+  real<lower=0> sigma;  // error scale
+}
+model {
+  // Assigning prior distributions on some parameters
+  alpha ~ normal(25000, 3000);
+  tau_h ~ normal(15, 3);
+  beta_h ~ normal(1000, 200);
+  // Observational model
+  for (n in 1:N_pre) {
+    y_pre[n] ~ normal(alpha + beta_h * fmax(tau_h-x_pre[n], 0), sigma);
+  }
+}
+generated quantities {
+  // This block is for posterior predictions. It is not part of model training
+  vector[N_pre] y_pre_pred;
+  vector[N_post] y_post_pred;
+  real savings = 0;
+  
+  for (n in 1:N_pre) {
+    y_pre_pred[n] = normal_rng(alpha + beta_h * fmax(tau_h-x_pre[n], 0), sigma);
+  }
+  
+  for (n in 1:N_post) {
+    y_post_pred[n] = normal_rng(alpha + beta_h * fmax(tau_h-x_post[n], 0), sigma);
+    savings += y_post_pred[n] - y_post[n];
+  }
+}"
+```
+
+Model training:
+
+```{r}
+data_list <- list(N_pre = 12,
+                  x_pre = df$T[1:12],
+                  y_pre = df$E[1:12],
+                  N_post = 12,
+                  x_post = df$T[13:24],
+                  y_post = df$E[13:24])
+
+fit2 <- stan(model_code = changepoint, data = data_list, refresh = 0)
+```
+
+Results:
+
+```{r}
+print(fit2, pars=c("alpha", "beta_h", "tau_h", "sigma", "savings"), probs=c(.025,.5,.975))
+```
+
+The `savings` variable shows the posterior distribution of the energy savings during the "post" period, as estimated by the trained model. They have a mean value of 83448 kWh, and 95% confidence intervals between 50890 kWh and 117773 kWh.
+
+Model checking:
+
+```{r}
+la2 <- rstan::extract(fit2, permuted = TRUE)
+
+# Model predictions during the "pre" period
+predict.pre <- apply(la2$y_pre_pred, 2, quantile, probs=c(0.025, 0.5, 0.975))
+
+# A plot with everything in it
+ggplot() +
+  geom_point(mapping = aes(x = df$T, y = df$E, color=df$period)) +
+  geom_line(mapping = aes(x = df$T[1:12], y = predict.pre[2,]), color='blue') +
+  geom_ribbon(mapping = aes(x = df$T[1:12], ymin=predict.pre[1,], ymax=predict.pre[3,]), fill='blue', alpha=0.1)
+  labs(x = "Temperature (C)", y="Energy use (kWh)")
+```
+
+# Summary
+
+The second model seems to estimate savings with a much narrower uncertainty.
+
+The following block prints the median and the 90% confidence bounds of the savings estimates, by both models. Linear regression first, then change-point model.
+
+```{r}
+# Savings estimated with linear regression
+quantile(la$savings, probs = c(0.025, 0.05, 0.5, 0.95, 0.975))
+# Savings estimated with change point model
+quantile(la2$savings, probs = c(0.025, 0.05, 0.5, 0.95, 0.975))
+```
+
+This confirms that the second model has a more precise estimation.
+
+Let's conclude with a graph to compare them visually.
+
+```{r}
+hist(la$savings, col='blue', xlab='Savings (kWh)')
+hist(la2$savings, col='red', add=TRUE)
+legend('topright', c('Linear regression', 'Change point'), fill=c('blue', 'red'))
+```
+
+

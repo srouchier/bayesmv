@@ -79,11 +79,17 @@ model {
   y ~ normal(alpha + x * beta, sigma);  // likelihood
 }
 generated quantities {
-  vector[N_post] prediction;
+  vector[N] predict_pre;
+  vector[N_post] predict_post;
   real savings = 0;
+  
+  for (n in 1:N) {
+    predict_pre[n] = normal_rng(x[n] * beta + alpha, sigma);
+  }
+  
   for (n in 1:N_post) {
-    prediction[n] = normal_rng(x_post[n] * beta + alpha, sigma);
-    savings += prediction[n] - y_post[n];
+    predict_post[n] = normal_rng(x_post[n] * beta + alpha, sigma);
+    savings += predict_post[n] - y_post[n];
   }
 }
 "
@@ -102,7 +108,7 @@ This line states that we expect $y$ to be normally distributed around the linear
 * The `data` block contains the definition of the data to be passed to the model. The variables declared in this block are the arguments that the model will use: the vector $\mathbf{y}$ and matrix $\mathbf{X}$ for each of the "pre" and "post" periods. The number of data items is also a requirement, since it is used as a variable by the Stan model.
 * The `parameters` block declares the variables that will be learned by model training: the intercept $\alpha$, the slopes $\beta$ and the noise scale $\sigma$.
 * The `generated quantities` block is optional and does not influence model training. It is used to evaluate any function of the parameters $f(\theta)$ at every sample, so that we may directly obtain its posterior distribution $p(f(\theta)|y)$ (see Eq. \@ref(eq:workflow11)). Two variables are computed here:
-  * `prediction` is the model's prediction of energy use during the post-ECM period. It uses the parameter models $(\alpha, \beta, \sigma)$ learned with pre-retrofit data, and the post-retrofit matrix of dependent variables $\mathbf{X}$.
+  * `predict_pre` and `predict_post` are the model's prediction of energy use during the pre and post-ECM periods. They use the parameter models $(\alpha, \beta, \sigma)$ learned with pre-retrofit data, and matrix of dependent variables for each period.
   * `savings` is the total difference between measured and predicted post-retrofit energy use.
 By including these two variables in the `generated quantities` block.
 
@@ -133,7 +139,7 @@ We can now get a fit with the following command. The important arguments are:
 * `warmup` is the number of discarded iterations at the start of every chain.
 Default values are `chains = 4`, `warmup = 1000` and `iter = 2000`, which will result in `chains*(iter-warmup)=4000` samples. This appeared slightly insufficient in our case because of the very small dataset, so we raised `iter`.
 
-```{r linreg04, cache=TRUE}
+```{r linreg04}
 fit <- stan(
   model_code = linearregression,  # Stan program
   data = data_list,        # named list of data
@@ -214,15 +220,15 @@ Here is a way to summarise posterior predictions into only a few quantiles:
 
 ```{r linreg09, fig.cap="Comparison of model prediction and measurements in the pre period"}
 # median, lower and upper bounds of the 95% prediction intervals
-predict <- apply(la$prediction, 2, quantile, probs=c(0.025, 0.5, 0.975))
+predict.pre <- apply(la$predict_pre, 2, quantile, probs=c(0.025, 0.5, 0.975))
 # mean prediction
-predict.mean <- colMeans(la$prediction)
+predict.mean <- colMeans(la$predict_pre)
 
 # Plot of the median and 95% prediction intervals
 ggplot(mapping = aes(x = array(1:nrow(df.pre)))) +
   geom_point(mapping = aes(y = df.pre$use)) +
-  geom_line(mapping = aes(y = predict[2,]), color='red') +
-  geom_ribbon(mapping = aes(ymin=predict[1,], ymax=predict[3,]), fill='red', alpha=0.1) +
+  geom_line(mapping = aes(y = predict.pre[2,]), color='red') +
+  geom_ribbon(mapping = aes(ymin=predict.pre[1,], ymax=predict.pre[3,]), fill='red', alpha=0.1) +
   labs(x = "Month", y="Energy use (kWh)")
 ```
 
@@ -291,14 +297,17 @@ The coefficients are the same as the Bayesian output. Without doing any model ch
 Let's now compare energy use predictions during the post-retrofit period, with the Bayesian method (in red) and the classical method (in blue):
 
 ```{r linreg15, fig.cap="Model predictions and measurements in the post period"}
+# Model predictions during the "post" period
+predict.post <- apply(la$predict_post, 2, quantile, probs=c(0.025, 0.5, 0.975))
+# Predictions from an ordinary linear regression model
 predict.2 <- predict(fit2, newdata = df.post, interval = "prediction", level=0.95)
 
 xplot <- array(1:nrow(df.post))
 ggplot(mapping = aes(x = xplot)) +
   geom_point(mapping = aes(y = df.post$use)) +
-  geom_line(mapping = aes(y = predict[2,]), color='red') +
+  geom_line(mapping = aes(y = predict.post[2,]), color='red') +
   geom_line(mapping = aes(y = predict.2[,1]), color='blue') +
-  geom_ribbon(mapping = aes(ymin=predict[1,], ymax=predict[3,]), fill='red', alpha=0.1) +
+  geom_ribbon(mapping = aes(ymin=predict.post[1,], ymax=predict.post[3,]), fill='red', alpha=0.1) +
   geom_ribbon(mapping = aes(ymin=predict.2[,2], ymax=predict.2[,3]), fill='blue', alpha=0.1)
 ```
 
@@ -310,9 +319,9 @@ method <- c("bayesian", "classical")
 mean.savings <- c(mean(la$savings),
                   sum(predict.2[,1] - df.post$use))
 # Lower and upper bounds of the 95% confidence interval of savings
-lower.bound <- c(sum(predict[1,] - df.post$use),
+lower.bound <- c(sum(predict.post[1,] - df.post$use),
                  sum(predict.2[,2] - df.post$use))
-upper.bound <- c(sum(predict[3,] - df.post$use),
+upper.bound <- c(sum(predict.post[3,] - df.post$use),
                  sum(predict.2[,3] - df.post$use)) 
 svgs <- data.frame(method, mean.savings, lower.bound, upper.bound)
 
